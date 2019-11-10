@@ -1,7 +1,7 @@
 export default () => {
     const { userAgent, language, languages, platform, hardwareConcurrency, deviceMemory } = window.navigator;
     const plugins = Object.entries(window.navigator.plugins).map(([, plugin]) => plugin.name);
-    const { colorDepth, availWidth, availHeight } = window.screen
+    const { colorDepth, availWidth, availHeight } = window.screen;
     const timezoneOffset = new Date().getTimezoneOffset();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const touchSupport = 'ontouchstart' in window;

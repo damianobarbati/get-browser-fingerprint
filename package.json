@@ -4,10 +4,10 @@
     "author": "Damiano Barbati <damiano.barbati@gmail.com> (http://github.com/damianobarbati)",
     "repository": "https://github.com/damianobarbati/get-browser-fingerprint",
     "license": "MIT",
-    "main": "index.js",
+    "main": "src/index.js",
     "type": "module",
     "scripts": {
-        "test": "node --experimental-modules index.spec.js || echo 'test failed'"
+        "test": "node --experimental-modules src/index.spec.js || echo 'test failed'"
     },
     "devDependencies": {
         "eslint": "^6.6.0",
