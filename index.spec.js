@@ -1,3 +1,4 @@
+import { strict as assert } from 'assert';
 import puppeteer from 'puppeteer';
 import getBrowserFingerprint from './index.js';
 
@@ -7,6 +8,6 @@ import getBrowserFingerprint from './index.js';
     const result = await page.evaluate(getBrowserFingerprint);
     await browser.close();
 
-    if (!Number.isInteger(result))
-        throw new Error(`${result} is not a valid fingerprint`);
-})().then(console.log).catch(console.error); //tofix: this does not exit with error
+    assert.deepStrictEqual(Number.isInteger(result), true, 'fingerprint is not an integer');
+    assert.deepStrictEqual(String(result).length > 7, true, 'fingerprint is not long enough');
+})().then(console.log).catch(console.error).finally(process.exit);

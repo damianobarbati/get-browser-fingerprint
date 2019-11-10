@@ -10,8 +10,7 @@
         "test": "node --experimental-modules index.spec.js || echo 'test failed'"
     },
     "devDependencies": {
-        "babel-eslint": "^10.0.2",
-        "eslint": "^6.0.1",
-        "puppeteer": "^1.18.1"
+        "eslint": "^6.6.0",
+        "puppeteer": "^2.0.0"
     }
 }
