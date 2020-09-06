@@ -1,11 +1,10 @@
-export default () => {
+export default hardwareOnly => {
     const { userAgent, language, languages, platform, hardwareConcurrency, deviceMemory } = window.navigator;
     const plugins = Object.entries(window.navigator.plugins).map(([, plugin]) => plugin.name);
     const { colorDepth, availWidth, availHeight } = window.screen;
     const timezoneOffset = new Date().getTimezoneOffset();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const touchSupport = 'ontouchstart' in window;
-
     const canvas = (() => {
         try {
             const canvas = document.createElement('canvas');
@@ -28,22 +27,33 @@ export default () => {
         }
     })();
 
-    const data = JSON.stringify({
-        userAgent,
-        language,
-        languages,
-        platform,
-        hardwareConcurrency,
-        deviceMemory,
-        plugins,
-        colorDepth,
-        availWidth,
-        availHeight,
-        timezoneOffset,
-        timezone,
-        touchSupport,
-        canvas,
-    });
+    const data = hardwareOnly ?
+        JSON.stringify({
+            platform,
+            hardwareConcurrency,
+            deviceMemory,
+            colorDepth,
+            availWidth,
+            availHeight,
+            touchSupport,
+            canvas,
+        }) :
+        JSON.stringify({
+            userAgent,
+            language,
+            languages,
+            platform,
+            hardwareConcurrency,
+            deviceMemory,
+            plugins,
+            colorDepth,
+            availWidth,
+            availHeight,
+            timezoneOffset,
+            timezone,
+            touchSupport,
+            canvas,
+        });
 
     const murmurhash3_32_gc = key => {
         const remainder = key.length & 3; // key.length % 4

@@ -7,10 +7,10 @@
     "main": "src/index.js",
     "type": "module",
     "scripts": {
-        "test": "node --experimental-modules src/index.spec.js || echo 'test failed'"
+        "test": "node src/index.spec.js || echo 'test failed'"
     },
     "devDependencies": {
-        "eslint": "^6.6.0",
-        "puppeteer": "^2.0.0"
+        "eslint": "^7.8.1",
+        "puppeteer": "^5.2.1"
     }
 }
