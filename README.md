@@ -11,9 +11,6 @@ const fingerprint = getBrowserFingerprint();
 console.log(fingerprint);
 ```
 
-Get a "stable" browser fingerprint across os/browser updates taking into account only hardware:
-```javascript
-import getBrowserFingerprint from 'get-browser-fingerprint';
-const fingerprint = getBrowserFingerprint(true);
-console.log(fingerprint);
-```
+Options available:
+- `enableWebgl`: enable webgl renderer, 5x times slower but deadly powerful (default `false`)
+- `debug`: log data used to generate fingerprint to console (default `false`)

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <h1></h1>
+        <!-- yarn http-server src -o -c-1 -->
+        <script type="module">
+            import getFingerprint from './index.js';
+
+            const t0 = performance.now();
+            const fingerprint = getFingerprint({ debug: true });
+            const t1 = performance.now();
+
+            const result = `Fingerprint: ${fingerprint} (in ${(t1 - t0).toFixed(0)} ms)`;
+            console.log(result);
+            document.querySelector('h1').innerText = result;
+        </script>
+    </body>
+</html>

@@ -1,0 +1,6 @@
+*.md
+.idea/
+node_modules/
+coverage/
+.cache/
+.DS_Store

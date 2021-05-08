@@ -22,4 +22,7 @@ import getBrowserFingerprint from './index.js';
         assert.deepStrictEqual(Number.isInteger(result), true, 'fingerprint is not an integer');
         assert.deepStrictEqual(String(result).length > 7, true, 'fingerprint is not long enough');
     })();
-})().then(console.log).catch(console.error).finally(process.exit);
+})()
+    .then(console.log)
+    .catch(console.error)
+    .finally(process.exit);
