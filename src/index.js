@@ -1,4 +1,4 @@
-export default ({ enableWebgl = false, debug = false }) => {
+export default ({ enableWebgl = false, debug = false } = {}) => {
     let { devicePixelRatio } = window;
     // weird behaviour when getting value from localhost vs ip!!!
     devicePixelRatio = +parseInt(devicePixelRatio);
