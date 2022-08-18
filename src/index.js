@@ -23,9 +23,6 @@ const getBrowserFingerprint = ({ enableWebgl = false, debug = false } = {}) => {
     webdriver,
   } = window.navigator;
 
-  const plugins = Object.entries(window.navigator.plugins).map(([, plugin]) => plugin.name);
-  const mimeTypes = Object.entries(window.navigator.mimeTypes).map(([, mimeType]) => mimeType.type);
-
   const { width, height, colorDepth, pixelDepth } = window.screen;
   const timezoneOffset = new Date().getTimezoneOffset();
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -47,9 +44,7 @@ const getBrowserFingerprint = ({ enableWebgl = false, debug = false } = {}) => {
     language,
     languages,
     maxTouchPoints,
-    mimeTypes,
     platform,
-    plugins,
     product,
     productSub,
     userAgent,
