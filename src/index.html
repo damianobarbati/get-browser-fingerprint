@@ -7,6 +7,7 @@
     <h1>get-browser-fingerprint</h1>
 
     <h2 id="default"></h2>
+    <h2 id="hardwareOnly"></h2>
     <h2 id="enableWebgl"></h2>
 
     <script type="module">
@@ -17,9 +18,19 @@
         const fingerprint = getFingerprint({ debug: true });
         const t1 = performance.now();
 
-        const result = `Fingerprint with enableWebgl=false: ${fingerprint} (computed in ${(t1 - t0).toFixed(0)} ms)`;
+        const result = `Fingerprint: ${fingerprint} (computed in ${(t1 - t0).toFixed(0)} ms)`;
         console.log(result);
         document.getElementById('default').innerText = result;
+      }
+
+      args_hardwareOnly: {
+        const t0 = performance.now();
+        const fingerprint = getFingerprint({ hardwareOnly: true, debug: true });
+        const t1 = performance.now();
+
+        const result = `Fingerprint with hardwareOnly=true: ${fingerprint} (computed in ${(t1 - t0).toFixed(0)} ms)`;
+        console.log(result);
+        document.getElementById('hardwareOnly').innerText = result;
       }
 
       args_enableWebgl: {
