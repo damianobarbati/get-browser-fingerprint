@@ -1,4 +1,4 @@
-const getBrowserFingerprint = ({ enableWebgl = false, debug = false } = {}) => {
+const getBrowserFingerprint = ({ hardwareOnly = false, enableWebgl = false, debug = false } = {}) => {
   const devicePixelRatio = +parseInt(window.devicePixelRatio);
 
   const {
@@ -18,7 +18,6 @@ const getBrowserFingerprint = ({ enableWebgl = false, debug = false } = {}) => {
     userAgent,
     vendor,
     vendorSub,
-    webdriver,
   } = window.navigator;
 
   const { width, height, colorDepth, pixelDepth } = window.screen;
@@ -27,39 +26,54 @@ const getBrowserFingerprint = ({ enableWebgl = false, debug = false } = {}) => {
   const touchSupport = 'ontouchstart' in window;
 
   const canvas = getCanvasID(debug);
-  const webgl = enableWebgl ? getWebglID(debug) : null;
-  const webglInfo = getWebglInfo(debug);
+  const webgl = enableWebgl ? getWebglID(debug) : undefined; // undefined will remove this from the stringify down here
+  const webglInfo = enableWebgl ? getWebglInfo(debug) : undefined; // undefined will remove this from the stringify down here
 
-  const data = {
-    devicePixelRatio,
-    appName,
-    appCodeName,
-    appVersion,
-    cookieEnabled,
-    deviceMemory,
-    doNotTrack,
-    hardwareConcurrency,
-    language,
-    languages,
-    maxTouchPoints,
-    platform,
-    product,
-    productSub,
-    userAgent,
-    vendor,
-    vendorSub,
-    webdriver,
-    width,
-    height,
-    colorDepth,
-    pixelDepth,
-    timezoneOffset,
-    timezone,
-    touchSupport,
-    canvas,
-    webgl,
-    webglInfo,
-  };
+  const data = hardwareOnly
+    ? JSON.stringify({
+        canvas,
+        colorDepth,
+        deviceMemory,
+        devicePixelRatio,
+        hardwareConcurrency,
+        height,
+        maxTouchPoints,
+        pixelDepth,
+        platform,
+        touchSupport,
+        webgl,
+        webglInfo,
+        width,
+      })
+    : JSON.stringify({
+        appCodeName,
+        appName,
+        appVersion,
+        canvas,
+        colorDepth,
+        cookieEnabled,
+        deviceMemory,
+        devicePixelRatio,
+        doNotTrack,
+        hardwareConcurrency,
+        height,
+        language,
+        languages,
+        maxTouchPoints,
+        pixelDepth,
+        platform,
+        product,
+        productSub,
+        timezone,
+        timezoneOffset,
+        touchSupport,
+        userAgent,
+        vendor,
+        vendorSub,
+        webgl,
+        webglInfo,
+        width,
+      });
 
   const datastring = JSON.stringify(data, null, 4);
 

@@ -30,6 +30,16 @@ describe('getBrowserFingerprint', () => {
     expect(String(result).length).toBeGreaterThanOrEqual(7);
   });
 
+  it('works without hardwareOnly=true', async () => {
+    const result = await page.evaluate(() => {
+      const result = window.getBrowserFingerprint();
+      return result;
+    });
+
+    expect(typeof result).toBe('number');
+    expect(String(result).length).toBeGreaterThanOrEqual(7);
+  });
+
   it('works with enableWebgl=true', async () => {
     const result = await page.evaluate(() => {
       const result = window.getBrowserFingerprint({ enableWebgl: true });
