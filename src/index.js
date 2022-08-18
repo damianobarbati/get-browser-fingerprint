@@ -1,7 +1,5 @@
 const getBrowserFingerprint = ({ enableWebgl = false, debug = false } = {}) => {
-  let { devicePixelRatio } = window;
-  // weird behaviour when getting value from localhost vs ip!!!
-  devicePixelRatio = +parseInt(devicePixelRatio);
+  const devicePixelRatio = +parseInt(window.devicePixelRatio);
 
   const {
     appName,

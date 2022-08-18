@@ -1,6 +1,6 @@
 # get-browser-fingerprint
 
-Zero dependencies package exporting a single and synchronous function which computes a browser fingerprint.
+Zero dependencies package exporting a single, fast (<15ms) and synchronous function which computes a browser fingerprint, without requiring any permission to the user.
 
 ## Usage
 
