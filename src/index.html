@@ -1,18 +1,36 @@
 <!DOCTYPE html>
 <html>
-    <body>
-        <h1></h1>
-        <!-- yarn http-server src -o -c-1 -->
-        <script type="module">
-            import getFingerprint from './index.js';
+  <head>
+    <title>get-browser-fingerprint demo</title>
+  </head>
+  <body>
+    <h1>get-browser-fingerprint</h1>
 
-            const t0 = performance.now();
-            const fingerprint = getFingerprint({ debug: true });
-            const t1 = performance.now();
+    <h2 id="default"></h2>
+    <h2 id="enableWebgl"></h2>
 
-            const result = `Fingerprint: ${fingerprint} (in ${(t1 - t0).toFixed(0)} ms)`;
-            console.log(result);
-            document.querySelector('h1').innerText = result;
-        </script>
-    </body>
+    <script type="module">
+      import getFingerprint from './index.js';
+
+      args_default: {
+        const t0 = performance.now();
+        const fingerprint = getFingerprint({ debug: true });
+        const t1 = performance.now();
+
+        const result = `Fingerprint with enableWebgl=false: ${fingerprint} (computed in ${(t1 - t0).toFixed(0)} ms)`;
+        console.log(result);
+        document.getElementById('default').innerText = result;
+      }
+
+      args_enableWebgl: {
+        const t0 = performance.now();
+        const fingerprint = getFingerprint({ enableWebgl: true, debug: true });
+        const t1 = performance.now();
+
+        const result = `Fingerprint with enableWebgl=true: ${fingerprint} (computed in ${(t1 - t0).toFixed(0)} ms)`;
+        console.log(result);
+        document.getElementById('enableWebgl').innerText = result;
+      }
+    </script>
+  </body>
 </html>
