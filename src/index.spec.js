@@ -1,23 +1,42 @@
-import { strict as assert } from 'assert';
 import puppeteer from 'puppeteer';
-import getBrowserFingerprint from './index.js';
 
-await (async () => {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  const result = await page.evaluate(getBrowserFingerprint);
-  await browser.close();
+describe('getBrowserFingerprint', () => {
+  let browser, page;
 
-  assert.deepStrictEqual(Number.isInteger(result), true, 'fingerprint is not an integer');
-  assert.deepStrictEqual(String(result).length > 7, true, 'fingerprint is not long enough');
-})();
+  beforeAll(async () => {
+    browser = await puppeteer.launch({
+      // headless: false,
+      // devtools: true,
+    });
+    page = await browser.newPage();
 
-await (async () => {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  const result = await page.evaluate(getBrowserFingerprint, true);
-  await browser.close();
+    await page.addScriptTag({
+      type: 'module',
+      path: './src/index.js',
+    });
+  });
 
-  assert.deepStrictEqual(Number.isInteger(result), true, 'fingerprint is not an integer');
-  assert.deepStrictEqual(String(result).length > 7, true, 'fingerprint is not long enough');
-})();
+  afterAll(async () => {
+    await browser.close();
+  });
+
+  it('works without args', async () => {
+    const result = await page.evaluate(() => {
+      const result = window.getBrowserFingerprint();
+      return result;
+    });
+
+    expect(typeof result).toBe('number');
+    expect(String(result).length).toBeGreaterThanOrEqual(7);
+  });
+
+  it('works with enableWebgl=true', async () => {
+    const result = await page.evaluate(() => {
+      const result = window.getBrowserFingerprint({ enableWebgl: true });
+      return result;
+    });
+
+    expect(typeof result).toBe('number');
+    expect(String(result).length).toBeGreaterThanOrEqual(7);
+  });
+});

@@ -1,4 +1,4 @@
-export default ({ enableWebgl = false, debug = false } = {}) => {
+const getBrowserFingerprint = ({ enableWebgl = false, debug = false } = {}) => {
   let { devicePixelRatio } = window;
   // weird behaviour when getting value from localhost vs ip!!!
   devicePixelRatio = +parseInt(devicePixelRatio);
@@ -236,3 +236,6 @@ export const murmurhash3_32_gc = (key) => {
 
   return h1 >>> 0;
 };
+
+window.getBrowserFingerprint = getBrowserFingerprint;
+export default getBrowserFingerprint;

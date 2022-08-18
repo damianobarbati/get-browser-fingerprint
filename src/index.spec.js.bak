@@ -1,0 +1,34 @@
+import { strict as assert } from 'assert';
+import puppeteer from 'puppeteer';
+
+const browser = await puppeteer.launch();
+const page = await browser.newPage();
+
+await page.addScriptTag({
+  type: 'module',
+  path: './src/index.js',
+});
+
+await (async () => {
+  const result = await page.evaluate(() => {
+    const result = getBrowserFingerprint();
+    return result;
+  });
+
+  assert.deepStrictEqual(Number.isInteger(result), true, 'fingerprint is not an integer');
+  assert.deepStrictEqual(String(result).length > 7, true, 'fingerprint is not long enough');
+})();
+
+await (async () => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  const result = await page.evaluate(() => {
+    const result = getBrowserFingerprint({ enableWebgl: true });
+    return result;
+  });
+
+  assert.deepStrictEqual(Number.isInteger(result), true, 'fingerprint is not an integer');
+  assert.deepStrictEqual(String(result).length > 7, true, 'fingerprint is not long enough');
+})();
+
+await browser.close();
