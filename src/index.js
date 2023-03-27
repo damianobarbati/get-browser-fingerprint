@@ -1,29 +1,11 @@
 const getBrowserFingerprint = ({ hardwareOnly = false, enableWebgl = false, debug = false } = {}) => {
-  const devicePixelRatio = +parseInt(window.devicePixelRatio);
-
-  const {
-    appName,
-    appCodeName,
-    appVersion,
-    cookieEnabled,
-    deviceMemory,
-    doNotTrack,
-    hardwareConcurrency,
-    language,
-    languages,
-    maxTouchPoints,
-    platform,
-    product,
-    productSub,
-    userAgent,
-    vendor,
-    vendorSub,
-  } = window.navigator;
+  const { cookieEnabled, deviceMemory, doNotTrack, hardwareConcurrency, language, languages, maxTouchPoints, platform, userAgent, vendor } = window.navigator;
 
   const { width, height, colorDepth, pixelDepth } = window.screen;
   const timezoneOffset = new Date().getTimezoneOffset();
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const touchSupport = 'ontouchstart' in window;
+  const devicePixelRatio = window.devicePixelRatio;
 
   const canvas = getCanvasID(debug);
   const webgl = enableWebgl ? getWebglID(debug) : undefined; // undefined will remove this from the stringify down here
@@ -46,9 +28,6 @@ const getBrowserFingerprint = ({ hardwareOnly = false, enableWebgl = false, debu
         width,
       })
     : JSON.stringify({
-        appCodeName,
-        appName,
-        appVersion,
         canvas,
         colorDepth,
         cookieEnabled,
@@ -62,14 +41,11 @@ const getBrowserFingerprint = ({ hardwareOnly = false, enableWebgl = false, debu
         maxTouchPoints,
         pixelDepth,
         platform,
-        product,
-        productSub,
         timezone,
         timezoneOffset,
         touchSupport,
         userAgent,
         vendor,
-        vendorSub,
         webgl,
         webglInfo,
         width,
@@ -245,4 +221,5 @@ export const murmurhash3_32_gc = (key) => {
 };
 
 window.getBrowserFingerprint = getBrowserFingerprint;
+
 export default getBrowserFingerprint;

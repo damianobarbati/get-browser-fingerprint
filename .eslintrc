@@ -1,8 +1,5 @@
 {
   "extends": [
     "eslint-config-xs/react"
-  ],
-  "rules": {
-    "jest/no-done-callback": "off"
-  }
+  ]
 }
