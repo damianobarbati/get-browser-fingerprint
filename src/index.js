@@ -1,5 +1,16 @@
 const getBrowserFingerprint = ({ hardwareOnly = false, enableWebgl = false, debug = false } = {}) => {
-  const { cookieEnabled, deviceMemory, doNotTrack, hardwareConcurrency, language, languages, maxTouchPoints, platform, userAgent, vendor } = window.navigator;
+  const {
+    cookieEnabled,
+    deviceMemory,
+    doNotTrack,
+    hardwareConcurrency,
+    language,
+    languages,
+    maxTouchPoints,
+    platform,
+    userAgent,
+    vendor,
+  } = window.navigator;
 
   const { width, height, colorDepth, pixelDepth } = window.screen;
   const timezoneOffset = new Date().getTimezoneOffset();
@@ -97,7 +108,8 @@ export const getWebglID = (debug) => {
 
     const f =
       'attribute vec2 attrVertex;varying vec2 varyinTexCoordinate;uniform vec2 uniformOffset;void main(){varyinTexCoordinate=attrVertex+uniformOffset;gl_Position=vec4(attrVertex,0,1);}';
-    const g = 'precision mediump float;varying vec2 varyinTexCoordinate;void main() {gl_FragColor=vec4(varyinTexCoordinate,0,1);}';
+    const g =
+      'precision mediump float;varying vec2 varyinTexCoordinate;void main() {gl_FragColor=vec4(varyinTexCoordinate,0,1);}';
     const h = ctx.createBuffer();
 
     ctx.bindBuffer(ctx.ARRAY_BUFFER, h);
@@ -151,10 +163,10 @@ export const getWebglInfo = () => {
     const ctx = document.createElement('canvas').getContext('webgl');
 
     const result = {
-      VERSION: ctx.getParameter(ctx.VERSION),
-      SHADING_LANGUAGE_VERSION: ctx.getParameter(ctx.SHADING_LANGUAGE_VERSION),
-      VENDOR: ctx.getParameter(ctx.VENDOR),
-      SUPORTED_EXTENSIONS: ctx.getSupportedExtensions(),
+      VERSION: String(ctx.getParameter(ctx.VERSION)),
+      SHADING_LANGUAGE_VERSION: String(ctx.getParameter(ctx.SHADING_LANGUAGE_VERSION)),
+      VENDOR: String(ctx.getParameter(ctx.VENDOR)),
+      SUPORTED_EXTENSIONS: String(ctx.getSupportedExtensions()),
     };
 
     return result;
@@ -172,7 +184,11 @@ export const murmurhash3_32_gc = (key) => {
   let h1, h1b, k1;
 
   for (let i = 0; i < bytes; i++) {
-    k1 = (key.charCodeAt(i) & 0xff) | ((key.charCodeAt(++i) & 0xff) << 8) | ((key.charCodeAt(++i) & 0xff) << 16) | ((key.charCodeAt(++i) & 0xff) << 24);
+    k1 =
+      (key.charCodeAt(i) & 0xff) |
+      ((key.charCodeAt(++i) & 0xff) << 8) |
+      ((key.charCodeAt(++i) & 0xff) << 16) |
+      ((key.charCodeAt(++i) & 0xff) << 24);
     ++i;
 
     k1 = ((k1 & 0xffff) * c1 + ((((k1 >>> 16) * c1) & 0xffff) << 16)) & 0xffffffff;

@@ -5,16 +5,20 @@
   "repository": "https://github.com/damianobarbati/get-browser-fingerprint",
   "license": "MIT",
   "main": "src/index.js",
-  "files": ["src/index.js", "package.json", "README.md"],
+  "files": [
+    "README.md",
+    "package.json",
+    "src/index.js"
+  ],
   "type": "module",
   "scripts": {
     "eslint": "eslint --ignore-path .gitignore --fix",
     "test": "vitest run"
   },
   "devDependencies": {
-    "eslint-config-xs": "^1.6.2",
+    "eslint-config-xs": "^2.6.0",
     "http-server": "^14.1.1",
-    "puppeteer": "^19.8.0",
-    "vitest": "^0.29.7"
+    "puppeteer": "^21.4.1",
+    "vitest": "^0.34.6"
   }
 }
