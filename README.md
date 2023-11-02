@@ -13,7 +13,8 @@ console.log(fingerprint);
 
 Options available:
 - `hardwareOnly` (default `false`): leverage only hardware info about device 
-- `enableWebgl` (default `false`): enable webgl renderer, ~4x times slower but adds another deadly powerful hardware detection layer on top of canvas 
+- `enableWebgl` (default `false`): enable webgl renderer, ~4x times slower but adds another deadly powerful hardware detection layer on top of canvas
+- `enableScreen` (default `true`): enable screen resolution detection, disable it if your userbase may use multiple screens
 - `debug`: log data used to generate fingerprint to console and add canvas/webgl canvas to body to see rendered image (default `false`)
 
 ⚠️ Be careful: the strongest discriminating factor is canvas token which can't be computed on old devices (eg: iPhone 6), deal accordingly ⚠️

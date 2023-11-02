@@ -1,4 +1,9 @@
-const getBrowserFingerprint = ({ hardwareOnly = false, enableWebgl = false, debug = false } = {}) => {
+const getBrowserFingerprint = ({
+  hardwareOnly = false,
+  enableWebgl = false,
+  enableScreen = true,
+  debug = false,
+} = {}) => {
   const {
     cookieEnabled,
     deviceMemory,
@@ -12,7 +17,7 @@ const getBrowserFingerprint = ({ hardwareOnly = false, enableWebgl = false, debu
     vendor,
   } = window.navigator;
 
-  const { width, height, colorDepth, pixelDepth } = window.screen;
+  const { width, height, colorDepth, pixelDepth } = enableScreen ? window.screen : {}; // undefined will remove this from the stringify down here
   const timezoneOffset = new Date().getTimezoneOffset();
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const touchSupport = 'ontouchstart' in window;
