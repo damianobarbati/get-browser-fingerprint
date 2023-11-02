@@ -1,5 +1,5 @@
-import { describe, it, beforeAll, afterAll, expect } from 'vitest';
 import puppeteer from 'puppeteer';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 describe('getBrowserFingerprint', () => {
   let browser, page;

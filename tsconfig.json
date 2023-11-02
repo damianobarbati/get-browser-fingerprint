@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "ES2022",
+    "lib": [
+      "ES2022",
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "noUnusedLocals": false,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "strictPropertyInitialization": false,
+    "noImplicitAny": false,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "rootDir": ".",
+    "outDir": "./dist",
+    "baseUrl": "."
+  }
+}
