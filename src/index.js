@@ -236,6 +236,8 @@ export const murmurhash3_32_gc = (key) => {
   return h1 >>> 0;
 };
 
-window.getBrowserFingerprint = getBrowserFingerprint;
+if (typeof window !== 'undefined') {
+  window.getBrowserFingerprint = getBrowserFingerprint;
+}
 
 export default getBrowserFingerprint;
