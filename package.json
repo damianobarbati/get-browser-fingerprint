@@ -10,15 +10,28 @@
     "package.json",
     "src/index.js"
   ],
+  "exports": {
+    "*": {
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "type": "module",
   "scripts": {
     "eslint": "eslint --ignore-path .gitignore --fix",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run build:esm && npm run build:cjs && npm run build:types",
+    "build:esm": "tsc src/index.ts --noEmit --module es6 --outDir dist/esm",
+    "build:cjs": "tsc src/index.ts --noEmit --module commonjs --outDir dist/cjs",
+    "build:types": "tsc src/index.ts --emitDeclarationOnly --declaration --outDir dist/"
   },
   "devDependencies": {
     "eslint-config-xs": "^2.6.1",
     "http-server": "^14.1.1",
     "puppeteer": "^21.4.1",
+    "typescript": "^5.3.3",
     "vitest": "^0.34.6"
   }
 }

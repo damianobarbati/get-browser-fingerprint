@@ -1,8 +1,9 @@
-import puppeteer from 'puppeteer';
+import puppeteer, { Browser, Page } from 'puppeteer';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import getBrowserFingerprint from '.';
 
 describe('getBrowserFingerprint', () => {
-  let browser, page;
+  let browser: Browser, page: Page;
 
   beforeAll(async () => {
     browser = await puppeteer.launch({
@@ -23,7 +24,7 @@ describe('getBrowserFingerprint', () => {
 
   it('works without args', async () => {
     const result = await page.evaluate(() => {
-      const result = window.getBrowserFingerprint();
+      const result = getBrowserFingerprint();
       return result;
     });
 
@@ -33,7 +34,7 @@ describe('getBrowserFingerprint', () => {
 
   it('works without hardwareOnly=true', async () => {
     const result = await page.evaluate(() => {
-      const result = window.getBrowserFingerprint();
+      const result = getBrowserFingerprint();
       return result;
     });
 
@@ -43,7 +44,7 @@ describe('getBrowserFingerprint', () => {
 
   it('works with enableWebgl=true', async () => {
     const result = await page.evaluate(() => {
-      const result = window.getBrowserFingerprint({ enableWebgl: true });
+      const result = getBrowserFingerprint({ enableWebgl: true });
       return result;
     });
 

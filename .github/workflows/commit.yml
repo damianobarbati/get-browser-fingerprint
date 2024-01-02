@@ -18,6 +18,9 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
+      - name: typecheck
+        run: yarn typecheck
+        
       - name: test
         run: |
           yarn install
