@@ -4,18 +4,14 @@
   "author": "Damiano Barbati <damiano.barbati@gmail.com> (https://github.com/damianobarbati)",
   "repository": "https://github.com/damianobarbati/get-browser-fingerprint",
   "license": "MIT",
-  "main": "src/index.js",
-  "files": [
-    "README.md",
-    "package.json",
-    "src/index.js"
-  ],
   "exports": {
     "*": {
       "require": "./dist/cjs/index.js",
       "import": "./dist/esm/index.js",
       "types": "./dist/index.d.ts"
-    }
+    },
+    "README.md": "./README.md",
+    "package.json": "./package.json"
   },
   "type": "module",
   "scripts": {
