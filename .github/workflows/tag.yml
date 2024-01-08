@@ -25,6 +25,5 @@ jobs:
         run: |
           yarn install
           yarn test
-          npm run test
-          npm run build
+          yarn build
           npm publish
