@@ -1,3 +1,9 @@
+declare global {
+  interface Window { 
+    getBrowserFingerprint: typeof getBrowserFingerprint; 
+  }
+}
+
 const getBrowserFingerprint = ({
   hardwareOnly = false,
   enableWebgl = false,
@@ -213,7 +219,9 @@ export const murmurhash3_32_gc = (key: string) => {
   const c1 = 0xcc9e2d51;
   const c2 = 0x1b873593;
 
-  let h1, h1b, k1;
+  let h1 :number = 0;
+  let h1b: number;
+  let k1: number;
 
   for (let i = 0; i < bytes; i++) {
     k1 =
@@ -269,7 +277,6 @@ export const murmurhash3_32_gc = (key: string) => {
 };
 
 if (typeof window !== 'undefined') {
-  // @ts-ignore -- is only for deperaction, use the export instead
   window.getBrowserFingerprint = getBrowserFingerprint;
 }
 

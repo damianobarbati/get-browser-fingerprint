@@ -23,6 +23,9 @@ jobs:
       - name: typecheck
         run: yarn typecheck
 
+      - name: prettier
+        run: yarn prettier:check
+          
       - name: test
         run: |
           yarn install

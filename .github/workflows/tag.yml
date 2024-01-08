@@ -26,4 +26,5 @@ jobs:
           yarn install
           yarn test
           npm run test
+          npm run build
           npm publish
