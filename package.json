@@ -4,26 +4,20 @@
   "author": "Damiano Barbati <damiano.barbati@gmail.com> (https://github.com/damianobarbati)",
   "repository": "https://github.com/damianobarbati/get-browser-fingerprint",
   "license": "MIT",
+  "type": "module",
   "exports": {
     "*": {
-      "require": "./dist/cjs/index.js",
-      "import": "./dist/esm/index.js",
+      "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
     "README.md": "./README.md",
     "package.json": "./package.json"
   },
-  "type": "module",
   "scripts": {
     "eslint": "eslint --ignore-path .gitignore --fix",
+    "typecheck": "tsc --noEmit --diagnostics",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "prettier:check": "prettier src --check",
-    "prettier:fix": "prettiert src -write",
-    "build": "npm run build:esm && npm run build:cjs && npm run build:types",
-    "build:esm": "tsc src/index.ts --module es6 --outDir dist/esm",
-    "build:cjs": "tsc src/index.ts --module commonjs --outDir dist/cjs",
-    "build:types": "tsc src/index.ts --emitDeclarationOnly --declaration --outDir dist/"
+    "build": "tsc src/index.ts --declaration --outDir dist"
   },
   "devDependencies": {
     "eslint-config-xs": "^2.6.1",

@@ -1,13 +1,14 @@
-import puppeteer, { Browser, Page } from 'puppeteer';
+import type { Browser, Page } from 'puppeteer';
+import puppeteer from 'puppeteer';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import getBrowserFingerprint from '.';
+import getBrowserFingerprint from './index';
 
 describe('getBrowserFingerprint', () => {
   let browser: Browser, page: Page;
 
   beforeAll(async () => {
     browser = await puppeteer.launch({
-      // headless: false,
+      headless: 'new',
       // devtools: true,
     });
     page = await browser.newPage();

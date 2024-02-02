@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "node",
     "target": "ES2022",
     "lib": [
       "ES2022",
-      "dom"
+      "dom",
+      "dom.iterable",
+      "esnext"
     ],
     "skipLibCheck": true,
     "strict": true,
-    "declaration": true,
     "sourceMap": true,
     "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true,
-    "moduleResolution": "node"
+    "esModuleInterop": true
   }
 }

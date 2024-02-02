@@ -1,6 +1,6 @@
 declare global {
-  interface Window { 
-    getBrowserFingerprint: typeof getBrowserFingerprint; 
+  interface Window {
+    getBrowserFingerprint: typeof getBrowserFingerprint;
   }
 }
 
@@ -24,12 +24,14 @@ const getBrowserFingerprint = ({
     vendor,
   } = window.navigator;
 
-  const { width, height, colorDepth, pixelDepth } = enableScreen ? window.screen : {
-    width: undefined,
-    height: undefined,
-    colorDepth: undefined,
-    pixelDepth: undefined
-  }; // undefined will remove this from the stringify down here
+  const { width, height, colorDepth, pixelDepth } = enableScreen
+    ? window.screen
+    : {
+        width: undefined,
+        height: undefined,
+        colorDepth: undefined,
+        pixelDepth: undefined,
+      }; // undefined will remove this from the stringify down here
   const timezoneOffset = new Date().getTimezoneOffset();
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const touchSupport = 'ontouchstart' in window;
@@ -91,7 +93,7 @@ export const getCanvasID = (debug: boolean) => {
   try {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    
+
     if (!ctx) {
       return null;
     }
@@ -147,6 +149,7 @@ export const getWebglID = (debug: boolean) => {
 
     const i = new Float32Array([-0.2, -0.9, 0, 0.4, -0.26, 0, 0, 0.7321, 0]);
 
+    // @ts-ignore
     ctx.bufferData(ctx.ARRAY_BUFFER, i, ctx.STATIC_DRAW), (h.itemSize = 3), (h.numItems = 3);
 
     const j = ctx.createProgram();
@@ -158,7 +161,7 @@ export const getWebglID = (debug: boolean) => {
     }
 
     ctx.shaderSource(k, f);
-    ctx.compileShader(k);    
+    ctx.compileShader(k);
 
     ctx.shaderSource(l, g);
     ctx.compileShader(l);
@@ -170,9 +173,12 @@ export const getWebglID = (debug: boolean) => {
     const vertexPosAttrib = ctx.getAttribLocation(j, 'attrVertex');
     const offsetUniform = ctx.getUniformLocation(j, 'uniformOffset');
 
+    // @ts-ignore
     ctx.enableVertexAttribArray(j.vertexPosArray);
+    // @ts-ignore
     ctx.vertexAttribPointer(vertexPosAttrib, h.itemSize, ctx.FLOAT, !1, 0, 0);
     ctx.uniform2f(offsetUniform, 1, 1);
+    // @ts-ignore
     ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, h.numItems);
 
     const n = new Uint8Array(canvas.width * canvas.height * 4);
@@ -199,7 +205,7 @@ export const getWebglInfo = () => {
     if (!ctx) {
       return null;
     }
-    
+
     const result = {
       VERSION: String(ctx.getParameter(ctx.VERSION)),
       SHADING_LANGUAGE_VERSION: String(ctx.getParameter(ctx.SHADING_LANGUAGE_VERSION)),
@@ -219,7 +225,7 @@ export const murmurhash3_32_gc = (key: string) => {
   const c1 = 0xcc9e2d51;
   const c2 = 0x1b873593;
 
-  let h1 :number = 0;
+  let h1 = 0;
   let h1b: number;
   let k1: number;
 
@@ -250,6 +256,7 @@ export const murmurhash3_32_gc = (key: string) => {
       k1 ^= (key.charCodeAt(i + 2) & 0xff) << 16;
       break;
     }
+
     case 2: {
       k1 ^= (key.charCodeAt(i + 1) & 0xff) << 8;
       break;
