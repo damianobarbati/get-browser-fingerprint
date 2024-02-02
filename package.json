@@ -16,9 +16,9 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "eslint-config-xs": "^2.6.1",
+    "eslint-config-xs": "^2.6.7",
     "http-server": "^14.1.1",
-    "puppeteer": "^21.4.1",
-    "vitest": "^0.34.6"
+    "puppeteer": "^21.11.0",
+    "vitest": "^1.2.2"
   }
 }
