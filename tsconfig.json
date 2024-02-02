@@ -1,18 +1,18 @@
 {
   "compilerOptions": {
-    "module": "esnext",
+    "module": "nodenext",
     "moduleResolution": "node",
-    "target": "ES2022",
+    "target": "esnext",
     "lib": [
       "ES2022",
       "dom",
       "dom.iterable",
       "esnext"
     ],
+    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "strict": true,
     "sourceMap": true,
-    "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true
+    "types": ["vitest/globals"]
   }
 }

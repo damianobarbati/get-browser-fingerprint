@@ -1,7 +1,7 @@
 import type { Browser, Page } from 'puppeteer';
 import puppeteer from 'puppeteer';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import getBrowserFingerprint from './index';
+import getBrowserFingerprint from './';
 
 describe('getBrowserFingerprint', () => {
   let browser: Browser, page: Page;
@@ -9,13 +9,12 @@ describe('getBrowserFingerprint', () => {
   beforeAll(async () => {
     browser = await puppeteer.launch({
       headless: 'new',
-      // devtools: true,
     });
     page = await browser.newPage();
 
     await page.addScriptTag({
       type: 'module',
-      path: './src/index.js',
+      path: './dist/index.js',
     });
   });
 

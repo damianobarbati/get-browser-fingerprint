@@ -19,11 +19,19 @@ jobs:
           node-version-file: '.nvmrc'
           registry-url: https://registry.npmjs.org/
 
+      - name: eslint
+        run: yarn eslint src/
+
+      - name: typecheck
+        run: yarn typecheck
+
+      - name: test
+        run: |
+          yarn install
+          yarn build
+          yarn test
+
       - name: release
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-        run: |
-          yarn install
-          yarn test
-          yarn build
-          npm publish
+        run: npm publish
