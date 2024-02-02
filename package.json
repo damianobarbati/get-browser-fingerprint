@@ -4,21 +4,27 @@
   "author": "Damiano Barbati <damiano.barbati@gmail.com> (https://github.com/damianobarbati)",
   "repository": "https://github.com/damianobarbati/get-browser-fingerprint",
   "license": "MIT",
-  "main": "src/index.js",
-  "files": [
-    "README.md",
-    "package.json",
-    "src/index.js"
-  ],
   "type": "module",
+  "exports": {
+    "*": {
+      "default": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "README.md": "./README.md",
+    "package.json": "./package.json"
+  },
   "scripts": {
     "eslint": "eslint --ignore-path .gitignore --fix",
-    "test": "vitest run"
+    "typecheck": "tsc --noEmit --diagnostics",
+    "test": "vitest run",
+    "build": "tsc src/index.ts --declaration --outDir dist"
   },
   "devDependencies": {
     "eslint-config-xs": "^2.6.1",
     "http-server": "^14.1.1",
     "puppeteer": "^21.4.1",
+    "typescript": "^5.3.3",
     "vitest": "^0.34.6"
   }
 }
