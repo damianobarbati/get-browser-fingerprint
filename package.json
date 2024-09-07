@@ -1,12 +1,17 @@
 {
   "name": "get-browser-fingerprint",
-  "version": "3.2.2",
+  "version": "3.2.3",
   "author": "Damiano Barbati <damiano.barbati@gmail.com> (https://github.com/damianobarbati)",
   "repository": "https://github.com/damianobarbati/get-browser-fingerprint",
   "license": "MIT",
   "main": "src/index.js",
   "type": "module",
-  "files": ["README.md", "package.json", "src/index.js", "src/index.d.ts"],
+  "files": [
+    "README.md",
+    "package.json",
+    "src/index.js",
+    "src/index.d.ts"
+  ],
   "types": "./src/index.d.ts",
   "scripts": {
     "lint": "biome check --write",
