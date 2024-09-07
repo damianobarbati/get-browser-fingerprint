@@ -6,12 +6,7 @@
   "license": "MIT",
   "main": "src/index.js",
   "type": "module",
-  "files": [
-    "README.md",
-    "package.json",
-    "src/index.js",
-    "src/index.d.js"
-  ],
+  "files": ["README.md", "package.json", "src/index.js", "src/index.d.ts"],
   "types": "./src/index.d.ts",
   "scripts": {
     "lint": "biome check --write",

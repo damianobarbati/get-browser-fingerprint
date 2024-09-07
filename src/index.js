@@ -59,7 +59,7 @@ const getBrowserFingerprint = ({ hardwareOnly = false, enableWebgl = false, enab
   return result;
 };
 
-export const getCanvasID = (debug) => {
+const getCanvasID = (debug) => {
   try {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -88,7 +88,7 @@ export const getCanvasID = (debug) => {
   }
 };
 
-export const getWebglID = (debug) => {
+const getWebglID = (debug) => {
   try {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("webgl");
@@ -148,7 +148,7 @@ export const getWebglID = (debug) => {
   }
 };
 
-export const getWebglInfo = () => {
+const getWebglInfo = () => {
   try {
     const ctx = document.createElement("canvas").getContext("webgl");
 
@@ -165,7 +165,7 @@ export const getWebglInfo = () => {
   }
 };
 
-export const murmurhash3_32_gc = (key) => {
+const murmurhash3_32_gc = (key) => {
   const remainder = key.length & 3; // key.length % 4
   const bytes = key.length - remainder;
   const c1 = 0xcc9e2d51;

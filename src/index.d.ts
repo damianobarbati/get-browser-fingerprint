@@ -1,17 +1,14 @@
-declare global {
-  interface Window {
-    getBrowserFingerprint: ({
-      hardwareOnly,
-      enableWebgl,
-      enableScreen,
-      debug,
-    }?: {
-      hardwareOnly?: boolean;
-      enableWebgl?: boolean;
-      enableScreen?: boolean;
-      debug?: boolean;
-    }) => number;
-  }
+export interface FingerprintOptions {
+  hardwareOnly?: boolean;
+  enableWebgl?: boolean;
+  enableScreen?: boolean;
+  debug?: boolean;
 }
 
-export type {};
+export default function getBrowserFingerprint(options?: FingerprintOptions): number;
+
+declare global {
+  interface Window {
+    getBrowserFingerprint: typeof getBrowserFingerprint;
+  }
+}
