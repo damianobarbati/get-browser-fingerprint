@@ -30,5 +30,5 @@ yarn test
 
 To run example locally:
 ```sh
-yarn http-server src -o -c-1 -p 80
+pnpm serve -p 80 ./src
 ```

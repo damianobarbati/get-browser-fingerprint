@@ -1,8 +1,9 @@
-import puppeteer from 'puppeteer';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import puppeteer from "puppeteer";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-describe('getBrowserFingerprint', () => {
-  let browser, page;
+describe("getBrowserFingerprint", () => {
+  let browser;
+  let page;
 
   beforeAll(async () => {
     browser = await puppeteer.launch({
@@ -12,8 +13,8 @@ describe('getBrowserFingerprint', () => {
     page = await browser.newPage();
 
     await page.addScriptTag({
-      type: 'module',
-      path: './src/index.js',
+      type: "module",
+      path: "./src/index.js",
     });
   });
 
@@ -21,33 +22,33 @@ describe('getBrowserFingerprint', () => {
     await browser.close();
   });
 
-  it('works without args', async () => {
+  it("works without args", async () => {
     const result = await page.evaluate(() => {
       const result = window.getBrowserFingerprint();
       return result;
     });
 
-    expect(typeof result).toBe('number');
+    expect(typeof result).toBe("number");
     expect(String(result).length).toBeGreaterThanOrEqual(7);
   });
 
-  it('works without hardwareOnly=true', async () => {
+  it("works without hardwareOnly=true", async () => {
     const result = await page.evaluate(() => {
       const result = window.getBrowserFingerprint();
       return result;
     });
 
-    expect(typeof result).toBe('number');
+    expect(typeof result).toBe("number");
     expect(String(result).length).toBeGreaterThanOrEqual(7);
   });
 
-  it('works with enableWebgl=true', async () => {
+  it("works with enableWebgl=true", async () => {
     const result = await page.evaluate(() => {
       const result = window.getBrowserFingerprint({ enableWebgl: true });
       return result;
     });
 
-    expect(typeof result).toBe('number');
+    expect(typeof result).toBe("number");
     expect(String(result).length).toBeGreaterThanOrEqual(7);
   });
 });

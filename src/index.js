@@ -1,26 +1,10 @@
-const getBrowserFingerprint = ({
-  hardwareOnly = false,
-  enableWebgl = false,
-  enableScreen = true,
-  debug = false,
-} = {}) => {
-  const {
-    cookieEnabled,
-    deviceMemory,
-    doNotTrack,
-    hardwareConcurrency,
-    language,
-    languages,
-    maxTouchPoints,
-    platform,
-    userAgent,
-    vendor,
-  } = window.navigator;
+const getBrowserFingerprint = ({ hardwareOnly = false, enableWebgl = false, enableScreen = true, debug = false } = {}) => {
+  const { cookieEnabled, deviceMemory, doNotTrack, hardwareConcurrency, language, languages, maxTouchPoints, platform, userAgent, vendor } = window.navigator;
 
   const { width, height, colorDepth, pixelDepth } = enableScreen ? window.screen : {}; // undefined will remove this from the stringify down here
   const timezoneOffset = new Date().getTimezoneOffset();
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const touchSupport = 'ontouchstart' in window;
+  const touchSupport = "ontouchstart" in window;
   const devicePixelRatio = window.devicePixelRatio;
 
   const canvas = getCanvasID(debug);
@@ -69,7 +53,7 @@ const getBrowserFingerprint = ({
 
   const datastring = JSON.stringify(data, null, 4);
 
-  if (debug) console.log('fingerprint data', datastring);
+  if (debug) console.log("fingerprint data", datastring);
 
   const result = murmurhash3_32_gc(datastring);
   return result;
@@ -77,17 +61,17 @@ const getBrowserFingerprint = ({
 
 export const getCanvasID = (debug) => {
   try {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
     const text = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`~1!2@3#4$5%6^7&8*9(0)-_=+[{]}|;:',<.>/?";
-    ctx.textBaseline = 'top';
+    ctx.textBaseline = "top";
     ctx.font = "14px 'Arial'";
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillStyle = '#f60';
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = "#f60";
     ctx.fillRect(125, 1, 62, 20);
-    ctx.fillStyle = '#069';
+    ctx.fillStyle = "#069";
     ctx.fillText(text, 2, 15);
-    ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+    ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
     ctx.fillText(text, 4, 17);
 
     const result = canvas.toDataURL();
@@ -106,22 +90,23 @@ export const getCanvasID = (debug) => {
 
 export const getWebglID = (debug) => {
   try {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('webgl');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("webgl");
     canvas.width = 256;
     canvas.height = 128;
 
     const f =
-      'attribute vec2 attrVertex;varying vec2 varyinTexCoordinate;uniform vec2 uniformOffset;void main(){varyinTexCoordinate=attrVertex+uniformOffset;gl_Position=vec4(attrVertex,0,1);}';
-    const g =
-      'precision mediump float;varying vec2 varyinTexCoordinate;void main() {gl_FragColor=vec4(varyinTexCoordinate,0,1);}';
+      "attribute vec2 attrVertex;varying vec2 varyinTexCoordinate;uniform vec2 uniformOffset;void main(){varyinTexCoordinate=attrVertex+uniformOffset;gl_Position=vec4(attrVertex,0,1);}";
+    const g = "precision mediump float;varying vec2 varyinTexCoordinate;void main() {gl_FragColor=vec4(varyinTexCoordinate,0,1);}";
     const h = ctx.createBuffer();
 
     ctx.bindBuffer(ctx.ARRAY_BUFFER, h);
 
     const i = new Float32Array([-0.2, -0.9, 0, 0.4, -0.26, 0, 0, 0.7321, 0]);
 
-    ctx.bufferData(ctx.ARRAY_BUFFER, i, ctx.STATIC_DRAW), (h.itemSize = 3), (h.numItems = 3);
+    ctx.bufferData(ctx.ARRAY_BUFFER, i, ctx.STATIC_DRAW);
+    h.itemSize = 3;
+    h.numItems = 3;
 
     const j = ctx.createProgram();
     const k = ctx.createShader(ctx.VERTEX_SHADER);
@@ -138,8 +123,8 @@ export const getWebglID = (debug) => {
     ctx.linkProgram(j);
     ctx.useProgram(j);
 
-    j.vertexPosAttrib = ctx.getAttribLocation(j, 'attrVertex');
-    j.offsetUniform = ctx.getUniformLocation(j, 'uniformOffset');
+    j.vertexPosAttrib = ctx.getAttribLocation(j, "attrVertex");
+    j.offsetUniform = ctx.getUniformLocation(j, "uniformOffset");
 
     ctx.enableVertexAttribArray(j.vertexPosArray);
     ctx.vertexAttribPointer(j.vertexPosAttrib, h.itemSize, ctx.FLOAT, !1, 0, 0);
@@ -149,7 +134,7 @@ export const getWebglID = (debug) => {
     const n = new Uint8Array(canvas.width * canvas.height * 4);
     ctx.readPixels(0, 0, canvas.width, canvas.height, ctx.RGBA, ctx.UNSIGNED_BYTE, n);
 
-    const result = JSON.stringify(n).replace(/,?"[0-9]+":/g, '');
+    const result = JSON.stringify(n).replace(/,?"[0-9]+":/g, "");
 
     if (debug) {
       document.body.appendChild(canvas);
@@ -165,7 +150,7 @@ export const getWebglID = (debug) => {
 
 export const getWebglInfo = () => {
   try {
-    const ctx = document.createElement('canvas').getContext('webgl');
+    const ctx = document.createElement("canvas").getContext("webgl");
 
     const result = {
       VERSION: String(ctx.getParameter(ctx.VERSION)),
@@ -186,14 +171,12 @@ export const murmurhash3_32_gc = (key) => {
   const c1 = 0xcc9e2d51;
   const c2 = 0x1b873593;
 
-  let h1, h1b, k1;
+  let h1;
+  let h1b;
+  let k1;
 
   for (let i = 0; i < bytes; i++) {
-    k1 =
-      (key.charCodeAt(i) & 0xff) |
-      ((key.charCodeAt(++i) & 0xff) << 8) |
-      ((key.charCodeAt(++i) & 0xff) << 16) |
-      ((key.charCodeAt(++i) & 0xff) << 24);
+    k1 = (key.charCodeAt(i) & 0xff) | ((key.charCodeAt(++i) & 0xff) << 8) | ((key.charCodeAt(++i) & 0xff) << 16) | ((key.charCodeAt(++i) & 0xff) << 24);
     ++i;
 
     k1 = ((k1 & 0xffff) * c1 + ((((k1 >>> 16) * c1) & 0xffff) << 16)) & 0xffffffff;
@@ -241,7 +224,7 @@ export const murmurhash3_32_gc = (key) => {
   return h1 >>> 0;
 };
 
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   window.getBrowserFingerprint = getBrowserFingerprint;
 }
 
