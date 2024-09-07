@@ -27,7 +27,9 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          pnpm install
+          pnpm exec playwright install chromium
 
       - name: Lint
         run: pnpm lint ./src
