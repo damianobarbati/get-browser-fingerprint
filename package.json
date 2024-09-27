@@ -18,9 +18,9 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.8.3",
-    "@playwright/test": "^1.47.0",
+    "@biomejs/biome": "^1.9.2",
+    "@playwright/test": "^1.47.2",
     "serve": "^14.2.3",
-    "vitest": "^2.0.5"
+    "vitest": "^2.1.1"
   }
 }

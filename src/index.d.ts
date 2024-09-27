@@ -1,7 +1,5 @@
 export interface FingerprintOptions {
   hardwareOnly?: boolean;
-  enableWebgl?: boolean;
-  enableScreen?: boolean;
   debug?: boolean;
 }
 

@@ -1,5 +1,8 @@
-const getBrowserFingerprint = ({ hardwareOnly = false, enableWebgl = false, enableScreen = true, debug = false } = {}) => {
+const getBrowserFingerprint = async ({ hardwareOnly = true, debug = false } = {}) => {
   const { cookieEnabled, deviceMemory, doNotTrack, hardwareConcurrency, language, languages, maxTouchPoints, platform, userAgent, vendor } = window.navigator;
+
+  // we use screen info only on mobile, because on desktop the user may use multiple monitors
+  const enableScreen = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   const { width, height, colorDepth, pixelDepth } = enableScreen ? window.screen : {}; // undefined will remove this from the stringify down here
   const timezoneOffset = new Date().getTimezoneOffset();
@@ -8,11 +11,15 @@ const getBrowserFingerprint = ({ hardwareOnly = false, enableWebgl = false, enab
   const devicePixelRatio = window.devicePixelRatio;
 
   const canvas = getCanvasID(debug);
-  const webgl = enableWebgl ? getWebglID(debug) : undefined; // undefined will remove this from the stringify down here
-  const webglInfo = enableWebgl ? getWebglInfo(debug) : undefined; // undefined will remove this from the stringify down here
+  const audio = await getAudioID(debug);
+  const audioInfo = getAudioInfo();
+  const webgl = getWebglID(debug);
+  const webglInfo = getWebglInfo();
 
   const data = hardwareOnly
-    ? JSON.stringify({
+    ? {
+        audioInfo,
+        audio,
         canvas,
         colorDepth,
         deviceMemory,
@@ -26,8 +33,10 @@ const getBrowserFingerprint = ({ hardwareOnly = false, enableWebgl = false, enab
         webgl,
         webglInfo,
         width,
-      })
-    : JSON.stringify({
+      }
+    : {
+        audioInfo,
+        audio,
         canvas,
         colorDepth,
         cookieEnabled,
@@ -49,13 +58,12 @@ const getBrowserFingerprint = ({ hardwareOnly = false, enableWebgl = false, enab
         webgl,
         webglInfo,
         width,
-      });
+      };
 
-  const datastring = JSON.stringify(data, null, 4);
+  if (debug) console.log("Fingerprint data:", JSON.stringify(data, null, 2));
 
-  if (debug) console.log("fingerprint data", datastring);
-
-  const result = murmurhash3_32_gc(datastring);
+  const payload = JSON.stringify(data, null, 2);
+  const result = murmurhash3_32_gc(payload);
   return result;
 };
 
@@ -156,12 +164,112 @@ const getWebglInfo = () => {
       VERSION: String(ctx.getParameter(ctx.VERSION)),
       SHADING_LANGUAGE_VERSION: String(ctx.getParameter(ctx.SHADING_LANGUAGE_VERSION)),
       VENDOR: String(ctx.getParameter(ctx.VENDOR)),
-      SUPORTED_EXTENSIONS: String(ctx.getSupportedExtensions()),
+      SUPPORTED_EXTENSIONS: String(ctx.getSupportedExtensions()),
     };
 
     return result;
   } catch {
     return null;
+  }
+};
+
+const getAudioInfo = () => {
+  try {
+    const OfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const length = 44100;
+    const sampleRate = 44100;
+    const context = new OfflineAudioContext(1, length, sampleRate);
+
+    const result = {
+      sampleRate: context.sampleRate,
+      channelCount: context.destination.maxChannelCount,
+      outputLatency: context.outputLatency,
+      state: context.state,
+      baseLatency: context.baseLatency,
+    };
+
+    return result;
+  } catch {
+    return null;
+  }
+};
+
+const getAudioID = async (debug) => {
+  try {
+    const OfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const sampleRate = 44100;
+    const length = 44100; // Number of samples (1 second of audio)
+    const context = new OfflineAudioContext(1, length, sampleRate);
+
+    // Create an oscillator to generate sound
+    const oscillator = context.createOscillator();
+    oscillator.type = "sine";
+    oscillator.frequency.value = 440;
+
+    oscillator.connect(context.destination);
+    oscillator.start();
+
+    // Render the audio into a buffer
+    const renderedBuffer = await context.startRendering();
+    const channelData = renderedBuffer.getChannelData(0);
+
+    // Generate fingerprint by summing the absolute values of the audio data
+    const result = channelData.reduce((acc, val) => acc + Math.abs(val), 0).toString();
+
+    if (debug) {
+      const wavBlob = bufferToWav(renderedBuffer);
+      const audioURL = URL.createObjectURL(wavBlob);
+
+      const audioElement = document.createElement("audio");
+      audioElement.controls = true;
+      audioElement.src = audioURL;
+      document.body.appendChild(audioElement);
+    }
+
+    return murmurhash3_32_gc(result);
+  } catch {
+    return null;
+  }
+};
+
+const bufferToWav = (buffer) => {
+  const numOfChannels = buffer.numberOfChannels;
+  const length = buffer.length * numOfChannels * 2 + 44; // Buffer size in bytes
+  const wavBuffer = new ArrayBuffer(length);
+  const view = new DataView(wavBuffer);
+
+  // Write WAV file header
+  writeString(view, 0, "RIFF");
+  view.setUint32(4, length - 8, true);
+  writeString(view, 8, "WAVE");
+  writeString(view, 12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, numOfChannels, true);
+  view.setUint32(24, buffer.sampleRate, true);
+  view.setUint32(28, buffer.sampleRate * numOfChannels * 2, true);
+  view.setUint16(32, numOfChannels * 2, true);
+  view.setUint16(34, 16, true);
+  writeString(view, 36, "data");
+  view.setUint32(40, length - 44, true);
+
+  // Write interleaved audio data
+  let offset = 44;
+  for (let i = 0; i < buffer.length; i++) {
+    for (let channel = 0; channel < numOfChannels; channel++) {
+      const sample = buffer.getChannelData(channel)[i];
+      const intSample = Math.max(-1, Math.min(1, sample)) * 32767;
+      view.setInt16(offset, intSample, true);
+      offset += 2;
+    }
+  }
+
+  return new Blob([view], { type: "audio/wav" });
+};
+
+const writeString = (view, offset, string) => {
+  for (let i = 0; i < string.length; i++) {
+    view.setUint8(offset + i, string.charCodeAt(i));
   }
 };
 
