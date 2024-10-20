@@ -1,3 +1,4 @@
+/** @type {import('./index.d.ts').getBrowserFingerprint} */
 const getBrowserFingerprint = async ({ hardwareOnly = true, debug = false } = {}) => {
   const { cookieEnabled, deviceMemory, doNotTrack, hardwareConcurrency, language, languages, maxTouchPoints, platform, userAgent, vendor } = window.navigator;
 
