@@ -1,6 +1,6 @@
 {
   "name": "get-browser-fingerprint",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "author": "Damiano Barbati <damiano.barbati@gmail.com> (https://github.com/damianobarbati)",
   "repository": "https://github.com/damianobarbati/get-browser-fingerprint",
   "license": "MIT",
