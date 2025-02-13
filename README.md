@@ -19,14 +19,9 @@ Options available:
 
 To test locally:
 ```sh
-<<<<<<< HEAD
-nvm install
-pnpm install
-pnpm exec playwright install chromium
-=======
 fnm install
 pnpm install
->>>>>>> 6bb54ae1f0091cc56c0498730a753f2d58b364c0
+pnpm exec playwright install chromium
 pnpm test
 ```
 
