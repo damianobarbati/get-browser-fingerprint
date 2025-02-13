@@ -7,50 +7,18 @@
     <h1>get-browser-fingerprint</h1>
 
     <h2 id="default"></h2>
-    <h2 id="hardwareOnly"></h2>
-    <h2 id="enableWebgl"></h2>
+    <pre id="debug"></pre>
 
     <script type="module">
       import getFingerprint from './index.js';
 
-      // default params
-      (() => {
-        console.group('Default params');
-        const t0 = performance.now();
-        const fingerprint = getFingerprint({ debug: true });
-        const t1 = performance.now();
+      const t0 = performance.now();
+      const fingerprint =await getFingerprint({ debug: true });
+      const t1 = performance.now();
 
-        const result = `Fingerprint: ${fingerprint} (computed in ${(t1 - t0).toFixed(0)} ms)`;
-        console.log(result);
-        document.getElementById('default').innerText = result;
-        console.groupEnd();
-      })();
-
-      // with hardwareOnly=true
-      (() => {
-        console.group('hardwareOnly=true');
-        const t0 = performance.now();
-        const fingerprint = getFingerprint({ hardwareOnly: true, debug: true });
-        const t1 = performance.now();
-
-        const result = `Fingerprint with hardwareOnly=true: ${fingerprint} (computed in ${(t1 - t0).toFixed(0)} ms)`;
-        console.log(result);
-        document.getElementById('hardwareOnly').innerText = result;
-        console.groupEnd();
-      })();
-
-      // with enableWebgl=true
-      (() => {
-        console.group('enableWebgl=true');
-        const t0 = performance.now();
-        const fingerprint = getFingerprint({ enableWebgl: true, debug: true });
-        const t1 = performance.now();
-
-        const result = `Fingerprint with enableWebgl=true: ${fingerprint} (computed in ${(t1 - t0).toFixed(0)} ms)`;
-        console.log(result);
-        document.getElementById('enableWebgl').innerText = result;
-        console.groupEnd();
-      })();
+      const result = `Fingerprint: ${fingerprint} (computed in ${(t1 - t0).toFixed(0)} ms)`;
+      console.log(result);
+      document.getElementById('default').innerText = result;
     </script>
   </body>
 </html>

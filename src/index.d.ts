@@ -1,11 +1,9 @@
 export interface FingerprintOptions {
   hardwareOnly?: boolean;
-  enableWebgl?: boolean;
-  enableScreen?: boolean;
   debug?: boolean;
 }
 
-export default function getBrowserFingerprint(options?: FingerprintOptions): number;
+export default function getBrowserFingerprint(options?: FingerprintOptions): Promise<number>;
 
 declare global {
   interface Window {
