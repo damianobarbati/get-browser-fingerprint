@@ -24,8 +24,9 @@ Options available:
 To test locally:
 ```sh
 nvm install
-yarn install
-yarn test
+pnpm install
+pnpm exec playwright install chromium
+pnpm test
 ```
 
 To run example locally:
