@@ -25,7 +25,7 @@ pnpm exec playwright install chromium
 pnpm test
 ```
 
-To run example locally:
+To run the example locally:
 ```sh
 pnpm serve -p 80 ./src
 ```
