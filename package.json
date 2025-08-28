@@ -6,16 +6,21 @@
   "license": "MIT",
   "main": "src/index.js",
   "type": "module",
-  "files": ["README.md", "package.json", "src/index.js", "src/index.d.ts"],
+  "files": [
+    "README.md",
+    "package.json",
+    "src/index.js",
+    "src/index.d.ts"
+  ],
   "types": "./src/index.d.ts",
   "scripts": {
     "lint": "biome check --write",
     "test": "vitest run"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "@playwright/test": "^1.50.1",
+    "@biomejs/biome": "^2.2.2",
+    "@playwright/test": "^1.55.0",
     "serve": "^14.2.4",
-    "vitest": "^3.0.5"
+    "vitest": "^3.2.4"
   }
 }
