@@ -1,6 +1,7 @@
 # get-browser-fingerprint
 
 A single and fast (<50ms) asynchronous function returning a browser fingerprint, without requiring any permission to the user.  
+Live [example here](https://damianobarbati.github.io/get-browser-fingerprint/).  
 
 ## Assumptions
 
