@@ -74,24 +74,26 @@ const isMobile = () =>
 
 /** @type {import('./index.d.ts').getBrowserFingerprint} */
 const getBrowserFingerprint = async ({ debug = false } = {}) => {
-  // software
-  const fonts = await safe(() => getFonts());
-  const numberingSystem = await safe(() => new Intl.NumberFormat(window.navigator.languages?.[0] || 'en').resolvedOptions().numberingSystem);
+  // synchronous signals
   const languages = window.navigator.languages ? Array.from(window.navigator.languages).join(',') : window.navigator.language || null;
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const timezoneOffset = new Date().getTimezoneOffset();
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduce' : 'no-preference';
   const colorScheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-
-  // hardware
   const forcedColors = window.matchMedia('(forced-colors: active)').matches ? 'active' : null;
   const { pixelDepth, colorDepth } = window.screen;
   const touchSupport = 'ontouchstart' in window || window.navigator.maxTouchPoints > 0;
-  const canvasID = await safe(() => getCanvasID(debug));
-  const webglID = await safe(() => getWebglID());
-  const webgpuID = await safe(() => getWebgpuID(debug));
-  const audioID = await safe(() => getAudioID(debug));
   const aspectRatio = window.screen.width && window.screen.height ? (window.screen.width / window.screen.height).toFixed(4) : null;
+
+  // async signals collected in parallel
+  const [fonts, numberingSystem, canvasID, webglID, webgpuID, audioID] = await Promise.all([
+    safe(getFonts),
+    safe(() => new Intl.NumberFormat(window.navigator.languages?.[0] || 'en').resolvedOptions().numberingSystem),
+    safe(() => getCanvasID(debug)),
+    safe(getWebglID),
+    safe(() => getWebgpuID(debug)),
+    safe(() => getAudioID(debug)),
+  ]);
 
   const data = {
     // SOFTWARE
@@ -187,6 +189,7 @@ const getCanvasID = async (debug) => {
 const getWebglID = () => {
   const canvas = document.createElement('canvas');
   const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return null;
   const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
   const vendor = debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR);
   const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);

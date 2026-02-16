@@ -24,15 +24,25 @@ describe('getBrowserFingerprint', () => {
     assert.ok(result.fingerprint.length === 8);
   });
 
-  it('works with hardwareOnly=true', async () => {
-    const result = await evaluateFn(page, { hardwareOnly: true });
+  it('returns a deterministic fingerprint', async () => {
+    const result1 = await evaluateFn(page, {});
+    const result2 = await evaluateFn(page, {});
+    assert.equal(result1.fingerprint, result2.fingerprint);
+  });
+
+  it('works with debug=true', async () => {
+    const result = await evaluateFn(page, { debug: true });
     assert.equal(typeof result.fingerprint, 'string');
     assert.ok(result.fingerprint.length === 8);
   });
 
-  it('works with enableWebgl=true', async () => {
-    const result = await evaluateFn(page, { enableWebgl: true });
-    assert.equal(typeof result.fingerprint, 'string');
-    assert.ok(result.fingerprint.length === 8);
+  it('includes expected data fields', async () => {
+    const result = await evaluateFn(page, {});
+    assert.ok('timezone' in result);
+    assert.ok('languages' in result);
+    assert.ok('colorScheme' in result);
+    assert.ok('touchSupport' in result);
+    assert.ok('pixelDepth' in result);
+    assert.ok('colorDepth' in result);
   });
 });
