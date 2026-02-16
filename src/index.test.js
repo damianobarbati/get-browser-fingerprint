@@ -24,14 +24,14 @@ describe('getBrowserFingerprint', () => {
     assert.ok(result.fingerprint.length === 8);
   });
 
-  it('works with hardwareOnly=true', async () => {
-    const result = await evaluateFn(page, { hardwareOnly: true });
+  it('works with debug=true', async () => {
+    const result = await evaluateFn(page, { debug: true });
     assert.equal(typeof result.fingerprint, 'string');
     assert.ok(result.fingerprint.length === 8);
   });
 
-  it('works with enableWebgl=true', async () => {
-    const result = await evaluateFn(page, { enableWebgl: true });
+  it('works with debug=false', async () => {
+    const result = await evaluateFn(page, { debug: false });
     assert.equal(typeof result.fingerprint, 'string');
     assert.ok(result.fingerprint.length === 8);
   });
