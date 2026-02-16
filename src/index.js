@@ -6,15 +6,12 @@ const murmurHash3 = (key, seed = 0) => {
 
   while (i + 3 < len) {
     let k = (key.charCodeAt(i) & 0xff) | ((key.charCodeAt(i + 1) & 0xff) << 8) | ((key.charCodeAt(i + 2) & 0xff) << 16) | ((key.charCodeAt(i + 3) & 0xff) << 24);
-
     k = Math.imul(k, 0xcc9e2d51);
     k = (k << 15) | (k >>> 17); // ROTL32(k, 15)
     k = Math.imul(k, 0x1b873593);
-
     h ^= k;
     h = (h << 13) | (h >>> 19); // ROTL32(h, 13)
     h = Math.imul(h, 5) + 0xe6546b64;
-
     i += 4;
   }
 
@@ -35,13 +32,11 @@ const murmurHash3 = (key, seed = 0) => {
       h ^= k1;
   }
 
-  // finalization
   h ^= h >>> 16;
   h = Math.imul(h, 0x85ebca6b);
   h ^= h >>> 13;
   h = Math.imul(h, 0xc2b2ae35);
   h ^= h >>> 16;
-
   h = h >>> 0; // force unsigned 32 bit
 
   const result = h.toString(16).padStart(8, '0');
