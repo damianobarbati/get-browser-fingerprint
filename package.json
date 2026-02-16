@@ -4,8 +4,13 @@
   "author": "Damiano Barbati <damiano.barbati@gmail.com> (https://github.com/damianobarbati)",
   "repository": "https://github.com/damianobarbati/get-browser-fingerprint",
   "license": "MIT",
-  "main": "src/index.js",
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": ">=25.6",
+    "pnpm": ">=10.28"
+  },
   "type": "module",
+  "main": "src/index.js",
   "files": [
     "README.md",
     "package.json",
@@ -14,13 +19,13 @@
   ],
   "types": "./src/index.d.ts",
   "scripts": {
+    "postinstall": "pnpm audit --audit-level critical",
     "lint": "biome check --write",
-    "test": "vitest run"
+    "test": "node --test --test-reporter=spec --test-reporter-destination=stdout"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.2",
-    "@playwright/test": "^1.55.0",
-    "serve": "^14.2.4",
-    "vitest": "^3.2.4"
+    "@biomejs/biome": "^2.4.0",
+    "@playwright/test": "^1.58.2",
+    "serve": "^14.2.5"
   }
 }

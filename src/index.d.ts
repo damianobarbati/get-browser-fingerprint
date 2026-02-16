@@ -1,5 +1,4 @@
 export interface FingerprintOptions {
-  hardwareOnly?: boolean;
   debug?: boolean;
 }
 

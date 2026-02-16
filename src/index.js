@@ -1,339 +1,411 @@
-/** @type {import('./index.d.ts').getBrowserFingerprint} */
-const getBrowserFingerprint = async ({ hardwareOnly = true, debug = false } = {}) => {
-  const { cookieEnabled, deviceMemory, doNotTrack, hardwareConcurrency, language, languages, maxTouchPoints, platform, userAgent, vendor } = window.navigator;
+const murmurHash3 = (key, seed = 0) => {
+  let h = seed ^ key.length;
 
-  // we use screen info only on mobile, because on desktop the user may use multiple monitors
-  const enableScreen = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  let i = 0;
+  const len = key.length;
 
-  const { width, height, colorDepth, pixelDepth } = enableScreen ? window.screen : {}; // undefined will remove this from the stringify down here
-  const timezoneOffset = new Date().getTimezoneOffset();
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const touchSupport = "ontouchstart" in window;
-  const devicePixelRatio = window.devicePixelRatio;
+  while (i + 3 < len) {
+    let k = (key.charCodeAt(i) & 0xff) | ((key.charCodeAt(i + 1) & 0xff) << 8) | ((key.charCodeAt(i + 2) & 0xff) << 16) | ((key.charCodeAt(i + 3) & 0xff) << 24);
 
-  const canvas = getCanvasID(debug);
-  const audio = await getAudioID(debug);
-  const audioInfo = getAudioInfo();
-  const webgl = getWebglID(debug);
-  const webglInfo = getWebglInfo();
+    k = Math.imul(k, 0xcc9e2d51);
+    k = (k << 15) | (k >>> 17); // ROTL32(k, 15)
+    k = Math.imul(k, 0x1b873593);
 
-  const data = hardwareOnly
-    ? {
-        audioInfo,
-        audio,
-        canvas,
-        colorDepth,
-        deviceMemory,
-        devicePixelRatio,
-        hardwareConcurrency,
-        height,
-        maxTouchPoints,
-        pixelDepth,
-        platform,
-        touchSupport,
-        webgl,
-        webglInfo,
-        width,
-      }
-    : {
-        audioInfo,
-        audio,
-        canvas,
-        colorDepth,
-        cookieEnabled,
-        deviceMemory,
-        devicePixelRatio,
-        doNotTrack,
-        hardwareConcurrency,
-        height,
-        language,
-        languages,
-        maxTouchPoints,
-        pixelDepth,
-        platform,
-        timezone,
-        timezoneOffset,
-        touchSupport,
-        userAgent,
-        vendor,
-        webgl,
-        webglInfo,
-        width,
-      };
+    h ^= k;
+    h = (h << 13) | (h >>> 19); // ROTL32(h, 13)
+    h = Math.imul(h, 5) + 0xe6546b64;
 
-  if (debug) console.log("Fingerprint data:", JSON.stringify(data, null, 2));
+    i += 4;
+  }
 
-  const payload = JSON.stringify(data, null, 2);
-  const result = murmurhash3_32_gc(payload);
+  // tail
+  let k1 = 0;
+  switch (len - i) {
+    // biome-ignore lint/suspicious/noFallthroughSwitchClause: ignore
+    case 3:
+      k1 ^= (key.charCodeAt(i + 2) & 0xff) << 16;
+    // biome-ignore lint/suspicious/noFallthroughSwitchClause: ignore
+    case 2:
+      k1 ^= (key.charCodeAt(i + 1) & 0xff) << 8;
+    case 1:
+      k1 ^= key.charCodeAt(i) & 0xff;
+      k1 = Math.imul(k1, 0xcc9e2d51);
+      k1 = (k1 << 15) | (k1 >>> 17);
+      k1 = Math.imul(k1, 0x1b873593);
+      h ^= k1;
+  }
+
+  // finalization
+  h ^= h >>> 16;
+  h = Math.imul(h, 0x85ebca6b);
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35);
+  h ^= h >>> 16;
+
+  h = h >>> 0; // force unsigned 32 bit
+
+  const result = h.toString(16).padStart(8, '0');
   return result;
 };
 
-const getCanvasID = (debug) => {
+const safe = async (fn) => {
   try {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    const text = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`~1!2@3#4$5%6^7&8*9(0)-_=+[{]}|;:',<.>/?";
-    ctx.textBaseline = "top";
-    ctx.font = "14px 'Arial'";
-    ctx.textBaseline = "alphabetic";
-    ctx.fillStyle = "#f60";
-    ctx.fillRect(125, 1, 62, 20);
-    ctx.fillStyle = "#069";
-    ctx.fillText(text, 2, 15);
-    ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
-    ctx.fillText(text, 4, 17);
-
-    const result = canvas.toDataURL();
-
-    if (debug) {
-      document.body.appendChild(canvas);
-    } else {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    return murmurhash3_32_gc(result);
+    return await fn();
   } catch {
     return null;
   }
 };
 
-const getWebglID = (debug) => {
-  try {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("webgl");
-    canvas.width = 256;
-    canvas.height = 128;
+const stableStringify = (obj) => {
+  // handle null, string, number, boolean
+  if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
+  // handle arrays recursively
+  if (Array.isArray(obj)) return '[' + obj.map(stableStringify).join(',') + ']';
 
-    const f =
-      "attribute vec2 attrVertex;varying vec2 varyinTexCoordinate;uniform vec2 uniformOffset;void main(){varyinTexCoordinate=attrVertex+uniformOffset;gl_Position=vec4(attrVertex,0,1);}";
-    const g = "precision mediump float;varying vec2 varyinTexCoordinate;void main() {gl_FragColor=vec4(varyinTexCoordinate,0,1);}";
-    const h = ctx.createBuffer();
-
-    ctx.bindBuffer(ctx.ARRAY_BUFFER, h);
-
-    const i = new Float32Array([-0.2, -0.9, 0, 0.4, -0.26, 0, 0, 0.7321, 0]);
-
-    ctx.bufferData(ctx.ARRAY_BUFFER, i, ctx.STATIC_DRAW);
-    h.itemSize = 3;
-    h.numItems = 3;
-
-    const j = ctx.createProgram();
-    const k = ctx.createShader(ctx.VERTEX_SHADER);
-
-    ctx.shaderSource(k, f);
-    ctx.compileShader(k);
-
-    const l = ctx.createShader(ctx.FRAGMENT_SHADER);
-
-    ctx.shaderSource(l, g);
-    ctx.compileShader(l);
-    ctx.attachShader(j, k);
-    ctx.attachShader(j, l);
-    ctx.linkProgram(j);
-    ctx.useProgram(j);
-
-    j.vertexPosAttrib = ctx.getAttribLocation(j, "attrVertex");
-    j.offsetUniform = ctx.getUniformLocation(j, "uniformOffset");
-
-    ctx.enableVertexAttribArray(j.vertexPosArray);
-    ctx.vertexAttribPointer(j.vertexPosAttrib, h.itemSize, ctx.FLOAT, !1, 0, 0);
-    ctx.uniform2f(j.offsetUniform, 1, 1);
-    ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, h.numItems);
-
-    const n = new Uint8Array(canvas.width * canvas.height * 4);
-    ctx.readPixels(0, 0, canvas.width, canvas.height, ctx.RGBA, ctx.UNSIGNED_BYTE, n);
-
-    const result = JSON.stringify(n).replace(/,?"[0-9]+":/g, "");
-
-    if (debug) {
-      document.body.appendChild(canvas);
-    } else {
-      ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT | ctx.STENCIL_BUFFER_BIT);
-    }
-
-    return murmurhash3_32_gc(result);
-  } catch {
-    return null;
+  const keys = Object.keys(obj).sort();
+  const parts = [];
+  for (const key of keys) {
+    const value = obj[key];
+    if (value !== undefined) parts.push(stableStringify(key) + ':' + stableStringify(value));
   }
+
+  return '{' + parts.join(',') + '}';
+};
+
+/** @type {import('./index.d.ts').getBrowserFingerprint} */
+const getBrowserFingerprint = async ({ debug = false } = {}) => {
+  const nav = window.navigator;
+  const scr = window.screen;
+  const mq = window.matchMedia;
+
+  const data = {
+    aspectRatio: scr.width && scr.height ? (scr.width / scr.height).toFixed(4) : null,
+    colorDepth: scr.colorDepth,
+    pixelDepth: scr.pixelDepth,
+    deviceMemory: nav.deviceMemory || null,
+    hardwareConcurrency: nav.hardwareConcurrency || null,
+    maxTouchPoints: nav.maxTouchPoints,
+    touchSupport: 'ontouchstart' in window || nav.maxTouchPoints > 0,
+    languages: nav.languages ? Array.from(nav.languages).join(',') : nav.language || null,
+    platform: nav.platform || null,
+    vendor: nav.vendor || null,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    timezoneOffset: new Date().getTimezoneOffset(),
+    width: scr.width,
+    height: scr.height,
+  };
+
+  const refreshRate = await safe(() => getRefreshRate());
+  if (refreshRate) data.refreshRate = refreshRate;
+
+  data.reducedMotion = mq('(prefers-reduced-motion: reduce)').matches ? 'reduce' : 'no-preference';
+  data.colorScheme = mq('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  data.forcedColors = mq('(forced-colors: active)').matches ? 'active' : null;
+
+  const webglInfo = await safe(() => getWebglInfo());
+  if (webglInfo?.vendor && webglInfo?.renderer) {
+    const webglHash = await safe(() => murmurHash3(`${webglInfo.vendor}|${webglInfo.renderer}`));
+    if (webglHash) data.webgl = webglHash;
+  }
+
+  const canvasHash = await safe(() => getCanvasHash(debug));
+  if (canvasHash) data.canvas = canvasHash;
+
+  const audioID = await safe(() => getAudioID(debug));
+  if (audioID) data.audio = audioID;
+
+  const webgpuHash = await safe(() => getWebgpuHash(debug));
+  if (webgpuHash) data.webgpu = webgpuHash;
+
+  const fonts = await safe(() => getFonts(debug));
+  if (fonts) data.fonts = fonts;
+
+  const numberingSystem = await safe(() => {
+    const nf = new Intl.NumberFormat(nav.languages?.[0] || 'en');
+    return nf.resolvedOptions().numberingSystem || null;
+  });
+  if (numberingSystem) data.numberingSystem = numberingSystem;
+
+  const payload = stableStringify(sortedEntries);
+  const fingerprint = murmurHash3(payload);
+  return { fingerprint, raw };
+};
+
+const getRefreshRate = async () => {
+  if (!window.requestAnimationFrame) return null;
+  return new Promise((r) => {
+    const start = performance.now();
+    let frames = 0;
+    const tick = (now) => {
+      frames++;
+      if (now - start >= 1000) {
+        r(Math.round((frames * 1000) / (now - start)));
+      } else {
+        requestAnimationFrame(tick);
+      }
+    };
+    requestAnimationFrame(tick);
+  }).catch(() => null);
 };
 
 const getWebglInfo = () => {
-  try {
-    const ctx = document.createElement("canvas").getContext("webgl");
+  const canvas = document.createElement('canvas');
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return null;
 
-    const result = {
-      VERSION: String(ctx.getParameter(ctx.VERSION)),
-      SHADING_LANGUAGE_VERSION: String(ctx.getParameter(ctx.SHADING_LANGUAGE_VERSION)),
-      VENDOR: String(ctx.getParameter(ctx.VENDOR)),
-      SUPPORTED_EXTENSIONS: String(ctx.getSupportedExtensions()),
-    };
-
-    return result;
-  } catch {
-    return null;
-  }
+  const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+  return {
+    vendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
+    renderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+  };
 };
 
-const getAudioInfo = () => {
-  try {
-    const OfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-    const length = 44100;
-    const sampleRate = 44100;
-    const context = new OfflineAudioContext(1, length, sampleRate);
+const getCanvasHash = async (debug) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 280;
+  canvas.height = 100;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
 
-    const result = {
-      sampleRate: context.sampleRate,
-      channelCount: context.destination.maxChannelCount,
-      outputLatency: context.outputLatency,
-      state: context.state,
-      baseLatency: context.baseLatency,
-    };
+  // sfondo con gradiente
+  const grad = ctx.createLinearGradient(0, 0, 280, 100);
+  grad.addColorStop(0, '#f60');
+  grad.addColorStop(0.4, '#09f');
+  grad.addColorStop(0.7, '#f09');
+  grad.addColorStop(1, '#0f9');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 280, 100);
 
-    return result;
-  } catch {
-    return null;
+  // testo con font multipli e caratteri problematici
+  ctx.font = '18px "Arial","Helvetica","DejaVu Sans",sans-serif';
+  ctx.fillStyle = '#000';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('Fingerprint ¼½¾™©®∆π∑€¶§', 12, 45);
+
+  ctx.font = 'bold 22px "Georgia","Times New Roman",serif';
+  ctx.fillStyle = '#222';
+  ctx.fillText('🦊🐱🚀 2026', 12, 78);
+
+  // forme con antialiasing e compositing
+  ctx.globalAlpha = 0.7;
+  ctx.fillStyle = 'rgba(255, 80, 0, 0.35)';
+  ctx.fillRect(180, 20, 80, 60);
+
+  ctx.beginPath();
+  ctx.arc(220, 50, 32, 0, Math.PI * 2);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(30, 85);
+  ctx.quadraticCurveTo(140, 20, 240, 85);
+  ctx.strokeStyle = '#00f';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  if (debug) {
+    canvas.style.border = '1px solid #444';
+    document.body.appendChild(canvas);
   }
+
+  const dataUrl = canvas.toDataURL('image/png');
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(dataUrl);
+  const hashBytes = await crypto.subtle.digest('SHA-256', bytes);
+  const hashArray = Array.from(new Uint8Array(hashBytes));
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+
+  return hashHex;
 };
 
 const getAudioID = async (debug) => {
+  const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  if (!OfflineCtx) return null;
+
   try {
-    const OfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-    const sampleRate = 44100;
-    const length = 44100; // Number of samples (1 second of audio)
-    const context = new OfflineAudioContext(1, length, sampleRate);
+    const context = new OfflineCtx(1, 6000, 44100);
+    const osc = context.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.value = 8800;
 
-    // Create an oscillator to generate sound
-    const oscillator = context.createOscillator();
-    oscillator.type = "sine";
-    oscillator.frequency.value = 440;
+    const compressor = context.createDynamicsCompressor();
+    compressor.threshold.value = -48;
+    compressor.knee.value = 30;
+    compressor.ratio.value = 14;
+    compressor.attack.value = 0;
+    compressor.release.value = 0.3;
 
-    oscillator.connect(context.destination);
-    oscillator.start();
+    const gain = context.createGain();
+    gain.gain.value = 0.4;
 
-    // Render the audio into a buffer
-    const renderedBuffer = await context.startRendering();
-    const channelData = renderedBuffer.getChannelData(0);
+    osc.connect(compressor);
+    compressor.connect(gain);
+    gain.connect(context.destination);
 
-    // Generate fingerprint by summing the absolute values of the audio data
-    const result = channelData.reduce((acc, val) => acc + Math.abs(val), 0).toString();
+    osc.start(0);
+    const buffer = await context.startRendering();
+    const channel = buffer.getChannelData(0);
+
+    let hash = 0;
+    let hash2 = 0;
+    for (let i = 3000; i < 5800; i += 2) {
+      const v = channel[i];
+      hash = (hash * 31 + Math.floor((v + 1) * 100000)) | 0;
+      hash2 = Math.imul(hash2 ^ Math.floor(v * 98765), 0x85ebca77);
+    }
+    const final = (hash >>> 0) ^ (hash2 >>> 0);
 
     if (debug) {
-      const wavBlob = bufferToWav(renderedBuffer);
-      const audioURL = URL.createObjectURL(wavBlob);
+      const wc = document.createElement('canvas');
+      wc.width = 500;
+      wc.height = 120;
+      wc.style.border = '1px solid #444';
+      wc.style.margin = '10px 0';
+      wc.title = 'Audio buffer snippet (4500–5000 samples)';
 
-      const audioElement = document.createElement("audio");
-      audioElement.controls = true;
-      audioElement.src = audioURL;
-      document.body.appendChild(audioElement);
+      const ctx = wc.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, wc.width, wc.height);
+
+        ctx.strokeStyle = '#0f8';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+
+        const waveform = Array.from(channel.slice(4500, 5000));
+        const step = wc.width / waveform.length;
+
+        for (let i = 0; i < waveform.length; i++) {
+          const x = i * step;
+          const y = ((waveform[i] + 1) / 2) * wc.height;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+
+      document.body.appendChild(wc);
     }
 
-    return murmurhash3_32_gc(result);
+    return final >>> 0;
   } catch {
     return null;
   }
 };
 
-const bufferToWav = (buffer) => {
-  const numOfChannels = buffer.numberOfChannels;
-  const length = buffer.length * numOfChannels * 2 + 44; // Buffer size in bytes
-  const wavBuffer = new ArrayBuffer(length);
-  const view = new DataView(wavBuffer);
+const getWebgpuHash = async (debug) => {
+  if (!navigator.gpu) return null;
 
-  // Write WAV file header
-  writeString(view, 0, "RIFF");
-  view.setUint32(4, length - 8, true);
-  writeString(view, 8, "WAVE");
-  writeString(view, 12, "fmt ");
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, numOfChannels, true);
-  view.setUint32(24, buffer.sampleRate, true);
-  view.setUint32(28, buffer.sampleRate * numOfChannels * 2, true);
-  view.setUint16(32, numOfChannels * 2, true);
-  view.setUint16(34, 16, true);
-  writeString(view, 36, "data");
-  view.setUint32(40, length - 44, true);
+  try {
+    const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+    if (!adapter) return null;
 
-  // Write interleaved audio data
-  let offset = 44;
-  for (let i = 0; i < buffer.length; i++) {
-    for (let channel = 0; channel < numOfChannels; channel++) {
-      const sample = buffer.getChannelData(channel)[i];
-      const intSample = Math.max(-1, Math.min(1, sample)) * 32767;
-      view.setInt16(offset, intSample, true);
-      offset += 2;
+    const features = Array.from(adapter.features).sort();
+    const limits = adapter.limits;
+    const sortedLimits = Object.fromEntries(Object.entries(limits).sort(([a], [b]) => a.localeCompare(b)));
+
+    const info = {
+      vendor: adapter.info?.vendor || '',
+      architecture: adapter.info?.architecture || '',
+      description: adapter.info?.description || '',
+    };
+
+    if (debug) {
+      const debugDiv = document.createElement('pre');
+      debugDiv.style.margin = '10px 0';
+      debugDiv.style.padding = '10px';
+      debugDiv.style.border = '1px solid #444';
+      debugDiv.style.background = '#111';
+      debugDiv.style.color = '#0f8';
+      debugDiv.style.fontFamily = 'monospace';
+      debugDiv.textContent = `WebGPU:\n${stableStringify({ features, limits: sortedLimits, info }, null, 2)}`;
+      document.body.appendChild(debugDiv);
+    }
+
+    const payload = stableStringify({ features, limits: sortedLimits, info });
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(payload);
+    const hashBytes = await crypto.subtle.digest('SHA-256', bytes);
+    const hashArray = Array.from(new Uint8Array(hashBytes));
+    return hashArray
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
+      .slice(0, 32);
+  } catch {
+    return null;
+  }
+};
+const getFonts = (debug) => {
+  const baseFonts = ['monospace', 'serif', 'sans-serif'];
+  const testFonts = [
+    'Arial',
+    'Helvetica',
+    'Verdana',
+    'Trebuchet MS',
+    'Comic Sans MS',
+    'Georgia',
+    'Times New Roman',
+    'Courier New',
+    'Segoe UI',
+    'Roboto',
+    'Open Sans',
+    'Noto Sans',
+    'system-ui',
+    '-apple-system',
+    'BlinkMacSystemFont',
+  ];
+
+  const span = document.createElement('span');
+  span.style.fontSize = '72px';
+  span.style.position = 'absolute';
+  span.style.visibility = 'hidden';
+  span.style.whiteSpace = 'nowrap';
+  span.textContent = 'mmmmmmmmmwwwwwww';
+  document.body.appendChild(span);
+
+  const defaults = {};
+  for (const base of baseFonts) {
+    span.style.fontFamily = base;
+    defaults[base] = span.offsetWidth;
+  }
+
+  const detected = [];
+  for (const font of testFonts) {
+    let found = false;
+    for (const base of baseFonts) {
+      span.style.fontFamily = `"${font}", ${base}`;
+      if (span.offsetWidth !== defaults[base]) {
+        detected.push(font);
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      span.style.fontFamily = `"${font}"`;
+      if (span.offsetWidth !== defaults.monospace && span.offsetWidth !== defaults.serif) {
+        detected.push(font);
+      }
     }
   }
 
-  return new Blob([view], { type: "audio/wav" });
+  if (debug) {
+    const debugDiv = document.createElement('div');
+    debugDiv.style.margin = '10px 0';
+    debugDiv.style.padding = '10px';
+    debugDiv.style.border = '1px solid #444';
+    debugDiv.style.background = '#111';
+    debugDiv.style.color = '#0f8';
+    debugDiv.style.fontFamily = 'monospace';
+    debugDiv.textContent = `Detected fonts: ${detected.join(', ') || 'none'}`;
+    document.body.appendChild(debugDiv);
+  }
+
+  document.body.removeChild(span);
+  return detected.length ? detected.sort().join(',') : null;
 };
 
-const writeString = (view, offset, string) => {
-  for (let i = 0; i < string.length; i++) {
-    view.setUint8(offset + i, string.charCodeAt(i));
-  }
-};
-
-const murmurhash3_32_gc = (key) => {
-  const remainder = key.length & 3; // key.length % 4
-  const bytes = key.length - remainder;
-  const c1 = 0xcc9e2d51;
-  const c2 = 0x1b873593;
-
-  let h1;
-  let h1b;
-  let k1;
-
-  for (let i = 0; i < bytes; i++) {
-    k1 = (key.charCodeAt(i) & 0xff) | ((key.charCodeAt(++i) & 0xff) << 8) | ((key.charCodeAt(++i) & 0xff) << 16) | ((key.charCodeAt(++i) & 0xff) << 24);
-    ++i;
-
-    k1 = ((k1 & 0xffff) * c1 + ((((k1 >>> 16) * c1) & 0xffff) << 16)) & 0xffffffff;
-    k1 = (k1 << 15) | (k1 >>> 17);
-    k1 = ((k1 & 0xffff) * c2 + ((((k1 >>> 16) * c2) & 0xffff) << 16)) & 0xffffffff;
-
-    h1 ^= k1;
-    h1 = (h1 << 13) | (h1 >>> 19);
-    h1b = ((h1 & 0xffff) * 5 + ((((h1 >>> 16) * 5) & 0xffff) << 16)) & 0xffffffff;
-    h1 = (h1b & 0xffff) + 0x6b64 + ((((h1b >>> 16) + 0xe654) & 0xffff) << 16);
-  }
-
-  const i = bytes - 1;
-
-  k1 = 0;
-
-  switch (remainder) {
-    case 3: {
-      k1 ^= (key.charCodeAt(i + 2) & 0xff) << 16;
-      break;
-    }
-    case 2: {
-      k1 ^= (key.charCodeAt(i + 1) & 0xff) << 8;
-      break;
-    }
-    case 1: {
-      k1 ^= key.charCodeAt(i) & 0xff;
-      break;
-    }
-  }
-
-  k1 = ((k1 & 0xffff) * c1 + ((((k1 >>> 16) * c1) & 0xffff) << 16)) & 0xffffffff;
-  k1 = (k1 << 15) | (k1 >>> 17);
-  k1 = ((k1 & 0xffff) * c2 + ((((k1 >>> 16) * c2) & 0xffff) << 16)) & 0xffffffff;
-  h1 ^= k1;
-
-  h1 ^= key.length;
-
-  h1 ^= h1 >>> 16;
-  h1 = ((h1 & 0xffff) * 0x85ebca6b + ((((h1 >>> 16) * 0x85ebca6b) & 0xffff) << 16)) & 0xffffffff;
-  h1 ^= h1 >>> 13;
-  h1 = ((h1 & 0xffff) * 0xc2b2ae35 + ((((h1 >>> 16) * 0xc2b2ae35) & 0xffff) << 16)) & 0xffffffff;
-  h1 ^= h1 >>> 16;
-
-  return h1 >>> 0;
-};
-
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   window.getBrowserFingerprint = getBrowserFingerprint;
 }
 
