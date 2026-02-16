@@ -1,5 +1,13 @@
 name: CI
 
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: ["main"]
@@ -11,6 +19,8 @@ jobs:
   test:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
+    env:
+      NODE_ENV: test
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,7 +28,7 @@ jobs:
       - name: Setup PNPM
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10.28.2
 
       - name: Setup NodeJS
         uses: actions/setup-node@v4
@@ -28,7 +38,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pnpm install
+          pnpm install --silent --frozen-lockfile --prefer-offline
           pnpm exec playwright install chromium
 
       - name: Lint
