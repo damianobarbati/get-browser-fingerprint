@@ -60,114 +60,89 @@ const stableStringify = (obj) => {
   // handle null, string, number, boolean
   if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
   // handle arrays recursively
-  if (Array.isArray(obj)) return '[' + obj.map(stableStringify).join(',') + ']';
+  if (Array.isArray(obj)) return `[${obj.map(stableStringify).join(',')}]`;
 
   const keys = Object.keys(obj).sort();
   const parts = [];
   for (const key of keys) {
     const value = obj[key];
-    if (value !== undefined) parts.push(stableStringify(key) + ':' + stableStringify(value));
+    if (value !== undefined) parts.push(`${stableStringify(key)}:${stableStringify(value)}`);
   }
 
-  return '{' + parts.join(',') + '}';
+  return `{${parts.join(',')}}`;
 };
+
+const isMobile = () =>
+  navigator.userAgentData?.mobile === true ||
+  /Mobi|Android|iPhone|iPad|iPod|webOS|BlackBerry|Windows Phone/i.test(navigator.userAgent) ||
+  (navigator.maxTouchPoints > 0 && matchMedia('(pointer:coarse)').matches && innerWidth <= 1024);
 
 /** @type {import('./index.d.ts').getBrowserFingerprint} */
 const getBrowserFingerprint = async ({ debug = false } = {}) => {
-  const nav = window.navigator;
-  const scr = window.screen;
-  const mq = window.matchMedia;
+  // software
+  const fonts = await safe(() => getFonts());
+  const numberingSystem = await safe(() => new Intl.NumberFormat(window.navigator.languages?.[0] || 'en').resolvedOptions().numberingSystem);
+  const languages = window.navigator.languages ? Array.from(window.navigator.languages).join(',') : window.navigator.language || null;
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const timezoneOffset = new Date().getTimezoneOffset();
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduce' : 'no-preference';
+  const colorScheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+  // hardware
+  const forcedColors = window.matchMedia('(forced-colors: active)').matches ? 'active' : null;
+  const { pixelDepth, colorDepth } = window.screen;
+  const touchSupport = 'ontouchstart' in window || window.navigator.maxTouchPoints > 0;
+  const canvasID = await safe(() => getCanvasID(debug));
+  const webglID = await safe(() => getWebglID());
+  const webgpuID = await safe(() => getWebgpuID(debug));
+  const audioID = await safe(() => getAudioID(debug));
+  const aspectRatio = window.screen.width && window.screen.height ? (window.screen.width / window.screen.height).toFixed(4) : null;
 
   const data = {
-    aspectRatio: scr.width && scr.height ? (scr.width / scr.height).toFixed(4) : null,
-    colorDepth: scr.colorDepth,
-    pixelDepth: scr.pixelDepth,
-    deviceMemory: nav.deviceMemory || null,
-    hardwareConcurrency: nav.hardwareConcurrency || null,
-    maxTouchPoints: nav.maxTouchPoints,
-    touchSupport: 'ontouchstart' in window || nav.maxTouchPoints > 0,
-    languages: nav.languages ? Array.from(nav.languages).join(',') : nav.language || null,
-    platform: nav.platform || null,
-    vendor: nav.vendor || null,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    timezoneOffset: new Date().getTimezoneOffset(),
-    width: scr.width,
-    height: scr.height,
+    // SOFTWARE
+    vendor: window.navigator.vendor || null, // vendor
+    platform: window.navigator.platform || null, // os
+    fonts, // stable default os setting
+    numberingSystem, // stable default os setting
+    languages, // stable user locale/setting
+    timezone, // stable user locale/setting
+    timezoneOffset, // stable user locale/setting
+    reducedMotion, // stable user locale/setting
+    colorScheme, // stable user locale/setting
+    // HARDWARE
+    hardwareConcurrency: window.navigator.hardwareConcurrency || null, // cpu
+    deviceMemory: window.navigator.deviceMemory || null, // ram
+    forcedColors, // display
+    pixelDepth, // display
+    colorDepth, // display
+    touchSupport, // display
+    canvasID, // gpu
+    webglID, // gpu
+    webgpuID, // gpu
+    audioID, // audio
   };
 
-  const refreshRate = await safe(() => getRefreshRate());
-  if (refreshRate) data.refreshRate = refreshRate;
+  const mobileData = {
+    aspectRatio,
+    width: window.screen.width,
+    height: window.screen.height,
+    maxTouchPoints: window.navigator.maxTouchPoints,
+  };
 
-  data.reducedMotion = mq('(prefers-reduced-motion: reduce)').matches ? 'reduce' : 'no-preference';
-  data.colorScheme = mq('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  data.forcedColors = mq('(forced-colors: active)').matches ? 'active' : null;
+  if (isMobile()) Object.assign(data, mobileData);
 
-  const webglInfo = await safe(() => getWebglInfo());
-  if (webglInfo?.vendor && webglInfo?.renderer) {
-    const webglHash = await safe(() => murmurHash3(`${webglInfo.vendor}|${webglInfo.renderer}`));
-    if (webglHash) data.webgl = webglHash;
-  }
-
-  const canvasHash = await safe(() => getCanvasHash(debug));
-  if (canvasHash) data.canvas = canvasHash;
-
-  const audioID = await safe(() => getAudioID(debug));
-  if (audioID) data.audio = audioID;
-
-  const webgpuHash = await safe(() => getWebgpuHash(debug));
-  if (webgpuHash) data.webgpu = webgpuHash;
-
-  const fonts = await safe(() => getFonts(debug));
-  if (fonts) data.fonts = fonts;
-
-  const numberingSystem = await safe(() => {
-    const nf = new Intl.NumberFormat(nav.languages?.[0] || 'en');
-    return nf.resolvedOptions().numberingSystem || null;
-  });
-  if (numberingSystem) data.numberingSystem = numberingSystem;
-
-  const payload = stableStringify(sortedEntries);
+  const payload = stableStringify(data);
   const fingerprint = murmurHash3(payload);
-  return { fingerprint, raw };
+  return { fingerprint, ...data };
 };
 
-const getRefreshRate = async () => {
-  if (!window.requestAnimationFrame) return null;
-  return new Promise((r) => {
-    const start = performance.now();
-    let frames = 0;
-    const tick = (now) => {
-      frames++;
-      if (now - start >= 1000) {
-        r(Math.round((frames * 1000) / (now - start)));
-      } else {
-        requestAnimationFrame(tick);
-      }
-    };
-    requestAnimationFrame(tick);
-  }).catch(() => null);
-};
-
-const getWebglInfo = () => {
-  const canvas = document.createElement('canvas');
-  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-  if (!gl) return null;
-
-  const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-  return {
-    vendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
-    renderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
-  };
-};
-
-const getCanvasHash = async (debug) => {
+const getCanvasID = async (debug) => {
   const canvas = document.createElement('canvas');
   canvas.width = 280;
   canvas.height = 100;
   const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
 
-  // sfondo con gradiente
+  // background with gradient
   const grad = ctx.createLinearGradient(0, 0, 280, 100);
   grad.addColorStop(0, '#f60');
   grad.addColorStop(0.4, '#09f');
@@ -176,7 +151,7 @@ const getCanvasHash = async (debug) => {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 280, 100);
 
-  // testo con font multipli e caratteri problematici
+  // text with multiple fonts and emoji
   ctx.font = '18px "Arial","Helvetica","DejaVu Sans",sans-serif';
   ctx.fillStyle = '#000';
   ctx.textBaseline = 'alphabetic';
@@ -186,7 +161,7 @@ const getCanvasHash = async (debug) => {
   ctx.fillStyle = '#222';
   ctx.fillText('🦊🐱🚀 2026', 12, 78);
 
-  // forme con antialiasing e compositing
+  // content with antialiasing and compositing
   ctx.globalAlpha = 0.7;
   ctx.fillStyle = 'rgba(255, 80, 0, 0.35)';
   ctx.fillRect(180, 20, 80, 60);
@@ -210,133 +185,121 @@ const getCanvasHash = async (debug) => {
   }
 
   const dataUrl = canvas.toDataURL('image/png');
-  const encoder = new TextEncoder();
-  const bytes = encoder.encode(dataUrl);
-  const hashBytes = await crypto.subtle.digest('SHA-256', bytes);
-  const hashArray = Array.from(new Uint8Array(hashBytes));
-  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  const result = murmurHash3(dataUrl);
+  return result;
+};
 
-  return hashHex;
+const getWebglID = () => {
+  const canvas = document.createElement('canvas');
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+  const vendor = debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR);
+  const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+  const info = { vendor, renderer };
+  const result = murmurHash3(stableStringify(info));
+  return result;
+};
+
+const getWebgpuID = async (debug) => {
+  const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+  const vendor = adapter.info?.vendor ?? '';
+  const architecture = adapter.info?.architecture ?? '';
+  const description = adapter.info?.description ?? '';
+  const features = Array.from(adapter.features).sort();
+  const limits = Array.from(adapter.limits).sort();
+  const info = { vendor, architecture, description, features, limits };
+
+  if (debug) {
+    const debugDiv = document.createElement('pre');
+    debugDiv.style.margin = '10px 0';
+    debugDiv.style.padding = '10px';
+    debugDiv.style.border = '1px solid #444';
+    debugDiv.style.background = '#111';
+    debugDiv.style.color = '#0f8';
+    debugDiv.style.fontFamily = 'monospace';
+    debugDiv.textContent = `WebGPU:\n${JSON.stringify(info, null, 2)}`;
+    document.body.appendChild(debugDiv);
+  }
+
+  const result = murmurHash3(stableStringify(info));
+  return result;
 };
 
 const getAudioID = async (debug) => {
   const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-  if (!OfflineCtx) return null;
 
-  try {
-    const context = new OfflineCtx(1, 6000, 44100);
-    const osc = context.createOscillator();
-    osc.type = 'sawtooth';
-    osc.frequency.value = 8800;
+  const context = new OfflineCtx(1, 6000, 44100);
+  const osc = context.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.value = 8800;
 
-    const compressor = context.createDynamicsCompressor();
-    compressor.threshold.value = -48;
-    compressor.knee.value = 30;
-    compressor.ratio.value = 14;
-    compressor.attack.value = 0;
-    compressor.release.value = 0.3;
+  const compressor = context.createDynamicsCompressor();
+  compressor.threshold.value = -48;
+  compressor.knee.value = 30;
+  compressor.ratio.value = 14;
+  compressor.attack.value = 0;
+  compressor.release.value = 0.3;
 
-    const gain = context.createGain();
-    gain.gain.value = 0.4;
+  const gain = context.createGain();
+  gain.gain.value = 0.4;
 
-    osc.connect(compressor);
-    compressor.connect(gain);
-    gain.connect(context.destination);
+  osc.connect(compressor);
+  compressor.connect(gain);
+  gain.connect(context.destination);
 
-    osc.start(0);
-    const buffer = await context.startRendering();
-    const channel = buffer.getChannelData(0);
+  osc.start(0);
+  const buffer = await context.startRendering();
+  const channel = buffer.getChannelData(0);
 
-    let hash = 0;
-    let hash2 = 0;
-    for (let i = 3000; i < 5800; i += 2) {
-      const v = channel[i];
-      hash = (hash * 31 + Math.floor((v + 1) * 100000)) | 0;
-      hash2 = Math.imul(hash2 ^ Math.floor(v * 98765), 0x85ebca77);
-    }
-    const final = (hash >>> 0) ^ (hash2 >>> 0);
-
-    if (debug) {
-      const wc = document.createElement('canvas');
-      wc.width = 500;
-      wc.height = 120;
-      wc.style.border = '1px solid #444';
-      wc.style.margin = '10px 0';
-      wc.title = 'Audio buffer snippet (4500–5000 samples)';
-
-      const ctx = wc.getContext('2d');
-      if (ctx) {
-        ctx.fillStyle = '#111';
-        ctx.fillRect(0, 0, wc.width, wc.height);
-
-        ctx.strokeStyle = '#0f8';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-
-        const waveform = Array.from(channel.slice(4500, 5000));
-        const step = wc.width / waveform.length;
-
-        for (let i = 0; i < waveform.length; i++) {
-          const x = i * step;
-          const y = ((waveform[i] + 1) / 2) * wc.height;
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-      }
-
-      document.body.appendChild(wc);
-    }
-
-    return final >>> 0;
-  } catch {
-    return null;
+  let hash = 0;
+  let hash2 = 0;
+  for (let i = 3000; i < 5800; i += 2) {
+    const v = channel[i];
+    hash = (hash * 31 + Math.floor((v + 1) * 100000)) | 0;
+    hash2 = Math.imul(hash2 ^ Math.floor(v * 98765), 0x85ebca77);
   }
+  const final = (hash >>> 0) ^ (hash2 >>> 0);
+
+  if (debug) {
+    const wc = document.createElement('canvas');
+    wc.width = 500;
+    wc.height = 120;
+    wc.style.border = '1px solid #444';
+    wc.style.margin = '10px 0';
+    wc.title = 'Audio buffer snippet (4500–5000 samples)';
+
+    const ctx = wc.getContext('2d');
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0, 0, wc.width, wc.height);
+
+    ctx.font = '14px monospace';
+    ctx.fillStyle = '#0f8';
+    ctx.textAlign = 'left';
+    ctx.fillText('AudioID', 10, 20);
+
+    ctx.strokeStyle = '#0f8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+
+    const waveform = Array.from(channel.slice(4500, 5000));
+    const step = wc.width / waveform.length;
+
+    for (let i = 0; i < waveform.length; i++) {
+      const x = i * step;
+      const y = ((waveform[i] + 1) / 2) * wc.height;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    document.body.appendChild(wc);
+  }
+
+  const result = murmurHash3(final.toString(16));
+  return result;
 };
 
-const getWebgpuHash = async (debug) => {
-  if (!navigator.gpu) return null;
-
-  try {
-    const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
-    if (!adapter) return null;
-
-    const features = Array.from(adapter.features).sort();
-    const limits = adapter.limits;
-    const sortedLimits = Object.fromEntries(Object.entries(limits).sort(([a], [b]) => a.localeCompare(b)));
-
-    const info = {
-      vendor: adapter.info?.vendor || '',
-      architecture: adapter.info?.architecture || '',
-      description: adapter.info?.description || '',
-    };
-
-    if (debug) {
-      const debugDiv = document.createElement('pre');
-      debugDiv.style.margin = '10px 0';
-      debugDiv.style.padding = '10px';
-      debugDiv.style.border = '1px solid #444';
-      debugDiv.style.background = '#111';
-      debugDiv.style.color = '#0f8';
-      debugDiv.style.fontFamily = 'monospace';
-      debugDiv.textContent = `WebGPU:\n${stableStringify({ features, limits: sortedLimits, info }, null, 2)}`;
-      document.body.appendChild(debugDiv);
-    }
-
-    const payload = stableStringify({ features, limits: sortedLimits, info });
-    const encoder = new TextEncoder();
-    const bytes = encoder.encode(payload);
-    const hashBytes = await crypto.subtle.digest('SHA-256', bytes);
-    const hashArray = Array.from(new Uint8Array(hashBytes));
-    return hashArray
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('')
-      .slice(0, 32);
-  } catch {
-    return null;
-  }
-};
-const getFonts = (debug) => {
+const getFonts = () => {
   const baseFonts = ['monospace', 'serif', 'sans-serif'];
   const testFonts = [
     'Arial',
@@ -389,20 +352,9 @@ const getFonts = (debug) => {
     }
   }
 
-  if (debug) {
-    const debugDiv = document.createElement('div');
-    debugDiv.style.margin = '10px 0';
-    debugDiv.style.padding = '10px';
-    debugDiv.style.border = '1px solid #444';
-    debugDiv.style.background = '#111';
-    debugDiv.style.color = '#0f8';
-    debugDiv.style.fontFamily = 'monospace';
-    debugDiv.textContent = `Detected fonts: ${detected.join(', ') || 'none'}`;
-    document.body.appendChild(debugDiv);
-  }
-
   document.body.removeChild(span);
-  return detected.length ? detected.sort().join(',') : null;
+  const info = detected.length ? detected.sort().join(',') : null;
+  return info;
 };
 
 if (typeof window !== 'undefined') {

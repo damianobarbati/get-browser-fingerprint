@@ -2,7 +2,11 @@ export interface FingerprintOptions {
   debug?: boolean;
 }
 
-export default function getBrowserFingerprint(options?: FingerprintOptions): Promise<number>;
+export type FingerprintResult = {
+  fingerprint: string;
+} & Record<string, string>;
+
+export default function getBrowserFingerprint(options?: FingerprintOptions): Promise<FingerprintResult>;
 
 declare global {
   interface Window {

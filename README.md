@@ -3,6 +3,7 @@
 A single and fast (<50ms) asynchronous function returning a browser fingerprint, without requiring any permission to the user.  
 
 ## Assumptions
+
 The function is targeting stock installations of the following browsers (no extensions or add-ons installed):
 - Google Chrome (desktop and Android)
 - Mozilla Firefox (desktop, default tracking protection, no custom privacy flags enabled)
