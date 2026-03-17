@@ -4,7 +4,8 @@ export interface FingerprintOptions {
 
 export type FingerprintResult = {
   fingerprint: string;
-} & Record<string, string>;
+  elapsedMs: number;
+} & Record<string, unknown>;
 
 export default function getBrowserFingerprint(options?: FingerprintOptions): Promise<FingerprintResult>;
 

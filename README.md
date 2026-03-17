@@ -1,12 +1,12 @@
 # get-browser-fingerprint
 
-A single asynchronous function that returns a browser fingerprint (64‑char hex, SHA‑256) without requiring any user permission.
+A single asynchronous function that returns a browser fingerprint (8‑char hex) without requiring any user permission.
 
 Live [example here](https://damianobarbati.github.io/get-browser-fingerprint/).
 
 ## Return value
 
-- **`fingerprint`** — SHA‑256 hash (hex) of the stable stringified payload.
+- **`fingerprint`** — MurmurHash3 (32-bit, hex) of the stable stringified payload.
 - **`elapsedMs`** — Execution time in milliseconds.
 - All collected signals are also spread on the returned object (e.g. `timezone`, `canvasID`, `webglID`, `languages`, …).
 
@@ -49,7 +49,7 @@ import getBrowserFingerprint from 'get-browser-fingerprint'
 
 // Call once; result holds fingerprint, elapsedMs, and all collected signals
 const result = await getBrowserFingerprint()
-// Log the 64-char hex fingerprint
+// Log the 8-char hex fingerprint
 console.log(result.fingerprint)
 // Log execution time in milliseconds
 console.log(result.elapsedMs)
@@ -69,7 +69,7 @@ const result = await getBrowserFingerprint({ debug: true })
 
 ### CDN
 
-Load as ESM from a CDN (secure context required):
+Load as ESM from a CDN:
 
 ```html
 <script type="module">
@@ -126,6 +126,5 @@ Then open `http://localhost/index.html` (or port 80 if using `-p 80`).
 - [NetworkInformation (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation)
 - [Permissions API (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API)
 - [Screen (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Screen)
-- [SubtleCrypto.digest() (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest)
 - [User-Agent Client Hints API (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/User-Agent_Client_Hints_API)
 - [Window.devicePixelRatio (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio)
