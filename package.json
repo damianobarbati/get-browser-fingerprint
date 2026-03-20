@@ -24,8 +24,8 @@
     "test": "node --test --test-reporter=spec --test-reporter-destination=stdout"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.0",
+    "@biomejs/biome": "^2.4.8",
     "@playwright/test": "^1.58.2",
-    "serve": "^14.2.5"
+    "serve": "^14.2.6"
   }
 }
