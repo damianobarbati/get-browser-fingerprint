@@ -19,13 +19,13 @@
   ],
   "types": "./src/index.d.ts",
   "scripts": {
-    "postinstall": "pnpm audit --audit-level critical",
+    "prepare": "pnpm audit --audit-level critical",
     "lint": "biome check --write",
     "test": "node --test --test-reporter=spec --test-reporter-destination=stdout"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.8",
-    "@playwright/test": "^1.58.2",
+    "@biomejs/biome": "^2.4.10",
+    "@playwright/test": "^1.59.1",
     "serve": "^14.2.6"
   }
 }
