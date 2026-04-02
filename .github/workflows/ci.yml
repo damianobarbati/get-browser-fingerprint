@@ -79,13 +79,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v5
+
       - name: Setup NodeJS
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
+          cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Release
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-        run: npm publish
+        run: pnpm publish --no-git-checks
